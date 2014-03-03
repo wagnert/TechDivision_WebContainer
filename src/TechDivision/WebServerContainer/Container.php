@@ -55,12 +55,64 @@ class Container extends \Stackable implements ContainerInterface
         // nothing
     }
 
-
-    public function run()
+    /**
+     * Return's the containers config node
+     *
+     * @return \TechDivision\ApplicationServer\Api\Node\ContainerNode
+     */
+    public function getContainerNode()
     {
-
-        error_log("JAAAAAAAAAAAAAAAAAAAAAA WOL");
-
+        return $this->containerNode;
     }
 
+    /**
+     * Return's the initial context instance
+     *
+     * @return \TechDivision\ApplicationServer\InitialContext
+     */
+    public function getInitialContext()
+    {
+        return $this->initialContext;
+    }
+
+    /**
+     * Run the containers logic
+     *
+     * @return void
+     */
+    public function run()
+    {
+        // define webservers base dir
+        // todo: refactor this in webserver repository
+        define(
+            'WEBSERVER_BASEDIR',
+            $this->getInitialContext()->getSystemConfiguration()->getBaseDirectory()->getNodeValue()->__toString()
+            . DIRECTORY_SEPARATOR
+        );
+        define(
+            'WEBSERVER_AUTOLOADER',
+            WEBSERVER_BASEDIR .
+            'app' . DIRECTORY_SEPARATOR . 'code' . DIRECTORY_SEPARATOR .'vendor' . DIRECTORY_SEPARATOR . 'autoload.php'
+        );
+
+        // setup configurations
+        $serverConfigurations = array();
+        foreach ($this->getContainerNode()->getServers() as $serverNode) {
+            $serverConfigurations[] = new ServerNodeConfiguration($serverNode);
+        }
+
+        // init server array
+        $servers = array();
+
+        // start servers by given configurations
+        foreach ($serverConfigurations as $serverConfig) {
+            $serverType = $serverConfig->getType();
+            $servers[] = new $serverType($serverConfig);
+        }
+
+        // wait for servers
+        foreach ($servers as $server) {
+            $server->join();
+        }
+    }
 }
