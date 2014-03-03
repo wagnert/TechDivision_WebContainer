@@ -1,0 +1,21 @@
+{
+    "name": "techdivision/webservercontainer",
+    "description": "An appserver.io container implementation for TechDivision_WebServer to serve",
+    "homepage": "https://github.com/techdivision/TechDivision_Http",
+    "keywords": ["php", "http", "server", "protocol"],
+    "license": ["OSL-3.0"],
+    "authors": [
+        {
+            "name": "Johann Zelger",
+            "email": "jz@techdivision.com",
+            "homepage": "http://www.techdivision.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-0": {"TechDivision": ["src/", "tests/"]}
+    }
+}
