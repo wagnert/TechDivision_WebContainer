@@ -1,8 +1,8 @@
 {
-    "name": "techdivision/webservercontainer",
+    "name": "techdivision/webcontainer",
     "description": "An appserver.io container implementation for TechDivision_WebServer to serve",
-    "homepage": "https://github.com/techdivision/TechDivision_Http",
-    "keywords": ["php", "http", "server", "protocol"],
+    "homepage": "https://github.com/techdivision/TechDivision_WebContainer",
+    "keywords": ["php", "web", "container", "appserver"],
     "license": ["OSL-3.0"],
     "authors": [
         {
