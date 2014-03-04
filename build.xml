@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="TechDivision_WebServerContainer" default="deploy" basedir=".">
+<project name="TechDivision_WebContainer" default="deploy" basedir=".">
     <property file="${basedir}/build.properties"/>
     <property file="${basedir}/build.default.properties"/>
     <property file="${basedir}/build.${os.family}.properties"/>
@@ -7,7 +7,7 @@
     <property environment="env" />
 
     <property name="namespace" value="techdivision" />
-    <property name="module" value="webservercontainer"/>
+    <property name="module" value="webcontainer"/>
     <property name="codepool" value="vendor"/>
     <property name="unique.name" value="${codepool}/${namespace}/${module}" />
     <property name="php-src.dir" value="${basedir}/src" />
