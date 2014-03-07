@@ -104,7 +104,7 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     }
 
     /**
-     * Return's software
+     * Return's admin
      *
      * @return string
      */
