@@ -94,13 +94,13 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     }
 
     /**
-     * Return's signature
+     * Return's software
      *
      * @return string
      */
-    public function getSignature()
+    public function getSoftware()
     {
-        return $this->node->getParam('signature');
+        return $this->node->getParam('software');
     }
 
     /**
