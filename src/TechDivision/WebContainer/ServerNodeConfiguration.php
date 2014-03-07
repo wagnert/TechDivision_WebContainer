@@ -104,6 +104,16 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     }
 
     /**
+     * Return's software
+     *
+     * @return string
+     */
+    public function getAdmin()
+    {
+        return $this->node->getParam('admin');
+    }
+
+    /**
      * Return's worker number
      *
      * @return int
