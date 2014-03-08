@@ -117,12 +117,12 @@ class Container extends \Stackable implements ContainerInterface
             $serverType = $serverConfig->getType();
             $serverContextType = $serverConfig->getServerContextType();
 
-            // init server context
+            // create a new instance server context
             $serverContext = new $serverContextType();
-            $serverContext->init($serverConfig);
 
-            // inject container to be available in specific mods etc.
+            // inject container to be available in specific mods etc. and initialize the module
             $serverContext->injectContainer($this);
+            $serverContext->init($serverConfig);
 
             // init and start server
             $servers[] = new $serverType($serverContext);
