@@ -206,6 +206,26 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     }
 
     /**
+     * Return's virtual hosts
+     *
+     * @return array
+     */
+    public function getVirtualHosts()
+    {
+        // init virutalHosts
+        $virtualHosts = array();
+        // iterate config
+        foreach ($this->node->getVirtualHosts() as $virtualHost) {
+            $virtualHostNames = explode(' ' , $virtualHost->getName());
+            foreach ($virtualHostNames as $virtualHostName) {
+                // set all virtual hosts params per key for faster matching later on
+                $virtualHosts[trim($virtualHostName)] = $virtualHost->getParamsAsArray();
+            }
+        }
+        return $virtualHosts;
+    }
+
+    /**
      * Return's cert path
      *
      * @return string
