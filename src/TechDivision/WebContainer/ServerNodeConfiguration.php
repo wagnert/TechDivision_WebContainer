@@ -44,6 +44,41 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     protected $node;
 
     /**
+     * Hold's the handlers array
+     *
+     * @var array
+     */
+    protected $handlers;
+
+    /**
+     * Hold's the connection handler array
+     *
+     * @var array
+     */
+    protected $connectionHandlers;
+
+    /**
+     * Hold's the virtual hosts array
+     *
+     * @var array
+     */
+    protected $virtualHosts;
+
+    /**
+     * Hold's the authentications array
+     *
+     * @var array
+     */
+    protected $authentications;
+
+    /**
+     * Hold's the modules array
+     *
+     * @var array
+     */
+    protected $modules;
+
+    /**
      * Constructs config
      *
      * @param \TechDivision\ApplicationServer\Api\Node\NodeInterface $node The node instance
@@ -170,11 +205,12 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
      */
     public function getConnectionHandlers()
     {
-        $connectionHandlers = array();
-        foreach ($this->node->getConnectionHandlers() as $connectionHandler) {
-            $connectionHandlers[$connectionHandler->getUuid()] = $connectionHandler->getType();
+        if (!$this->connectionHandlers) {
+            foreach ($this->node->getConnectionHandlers() as $connectionHandler) {
+                $this->connectionHandlers[$connectionHandler->getUuid()] = $connectionHandler->getType();
+            }
         }
-        return $connectionHandlers;
+        return $this->connectionHandlers;
     }
 
     /**
@@ -184,11 +220,12 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
      */
     public function getModules()
     {
-        $modules = array();
-        foreach ($this->node->getModules() as $module) {
-            $modules[$module->getUuid()] = $module->getType();
+        if (!$this->modules) {
+            foreach ($this->node->getModules() as $module) {
+                $this->modules[$module->getUuid()] = $module->getType();
+            }
         }
-        return $modules;
+        return $this->modules;
     }
 
     /**
@@ -198,11 +235,12 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
      */
     public function getHandlers()
     {
-        $handlers = array();
-        foreach ($this->node->getFileHandlers() as $fileHandler) {
-            $handlers[$fileHandler->getExtension()] = $fileHandler->getName();
+        if (!$this->handlers) {
+            foreach ($this->node->getFileHandlers() as $fileHandler) {
+                $this->handlers[$fileHandler->getExtension()] = $fileHandler->getName();
+            }
         }
-        return $handlers;
+        return $this->handlers;
     }
 
     /**
@@ -212,17 +250,34 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
      */
     public function getVirtualHosts()
     {
-        // init virutalHosts
-        $virtualHosts = array();
-        // iterate config
-        foreach ($this->node->getVirtualHosts() as $virtualHost) {
-            $virtualHostNames = explode(' ', $virtualHost->getName());
-            foreach ($virtualHostNames as $virtualHostName) {
-                // set all virtual hosts params per key for faster matching later on
-                $virtualHosts[trim($virtualHostName)] = $virtualHost->getParamsAsArray();
+        if (!$this->virtualHosts) {
+            // iterate config
+            foreach ($this->node->getVirtualHosts() as $virtualHost) {
+                $virtualHostNames = explode(' ', $virtualHost->getName());
+                foreach ($virtualHostNames as $virtualHostName) {
+                    // set all virtual hosts params per key for faster matching later on
+                    $this->virtualHosts[trim($virtualHostName)] = $virtualHost->getParamsAsArray();
+                }
             }
         }
-        return $virtualHosts;
+        return $this->virtualHosts;
+    }
+
+    /**
+     * Return's the authentications
+     *
+     * @return array
+     */
+    public function getAuthentications()
+    {
+        if (!$this->authentications) {
+            // iterate config
+            foreach ($this->node->getAuthentications() as $authentication) {
+                $authenticationType = $authentication->getType();
+                $this->authentications[$authenticationType] = $authentication->getParamsAsArray();
+            }
+        }
+        return $this->authentications;
     }
 
     /**
