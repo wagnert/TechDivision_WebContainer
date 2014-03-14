@@ -244,4 +244,39 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     {
         return $this->node->getParam('passphrase');
     }
+    
+    /**
+     * Returns the authentication configuration.
+     * 
+     * @return array The array with the authentication configuration
+     * 
+     * @todo This is a dummy implementation to implement interface of WebServer
+     */
+    public function getAuthentications()
+    {
+        return array();
+    }
+    
+    /**
+     * Returns the rewrite configuration.
+     * 
+     * @return array
+     */
+    public function getRewrites()
+    {
+        // init rewrites
+        $rewrites = array();
+        
+        // prepare the array with the rewrite rules
+        foreach ($this->node->getRewrites() as $rewrite) {
+            $rewrites[] = array(
+                'condition' => $rewrite->getCondition(),
+                'target' => $rewrite->getTarget(),
+                'flag' => $rewrite->getFlag()
+            );
+        }
+        
+        // return the rewrites
+        return $rewrites;
+    }
 }
