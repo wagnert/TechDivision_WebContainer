@@ -79,6 +79,13 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     protected $modules;
 
     /**
+     * Hold's the rewrites array
+     *
+     * @var array
+     */
+    protected $rewrites;
+
+    /**
      * Constructs config
      *
      * @param \TechDivision\ApplicationServer\Api\Node\NodeInterface $node The node instance
@@ -264,9 +271,9 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     }
 
     /**
-     * Return's the authentications
+     * Returns the authentication configuration.
      *
-     * @return array
+     * @return array The array with the authentication configuration
      */
     public function getAuthentications()
     {
@@ -299,19 +306,7 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     {
         return $this->node->getParam('passphrase');
     }
-    
-    /**
-     * Returns the authentication configuration.
-     * 
-     * @return array The array with the authentication configuration
-     * 
-     * @todo This is a dummy implementation to implement interface of WebServer
-     */
-    public function getAuthentications()
-    {
-        return array();
-    }
-    
+
     /**
      * Returns the rewrite configuration.
      * 
@@ -320,18 +315,18 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     public function getRewrites()
     {
         // init rewrites
-        $rewrites = array();
-        
-        // prepare the array with the rewrite rules
-        foreach ($this->node->getRewrites() as $rewrite) {
-            $rewrites[] = array(
-                'condition' => $rewrite->getCondition(),
-                'target' => $rewrite->getTarget(),
-                'flag' => $rewrite->getFlag()
-            );
+        if (!$this->rewrites) {
+            // prepare the array with the rewrite rules
+            foreach ($this->node->getRewrites() as $rewrite) {
+                $this->rewrites[] = array(
+                    'condition' => $rewrite->getCondition(),
+                    'target' => $rewrite->getTarget(),
+                    'flag' => $rewrite->getFlag()
+                );
+            }
         }
         
         // return the rewrites
-        return $rewrites;
+        return $this->rewrites;
     }
 }
