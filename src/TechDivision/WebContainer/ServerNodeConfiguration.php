@@ -270,8 +270,8 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
         // prepare the array with the rewrite rules
         foreach ($this->node->getRewrites() as $rewrite) {
             $rewrites[] = array(
-                'condition' => $rewrite->getCondition(), 
-                'target' => $rewrite->getTarget(), 
+                'condition' => $rewrite->getCondition(),
+                'target' => $rewrite->getTarget(),
                 'flag' => $rewrite->getFlag()
             );
         }
