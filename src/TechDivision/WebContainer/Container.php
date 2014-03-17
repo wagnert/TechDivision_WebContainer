@@ -62,6 +62,16 @@ class Container extends \Stackable implements ContainerInterface
     }
 
     /**
+     * Returns an array with the deployed applications.
+     *
+     * @return array The array with applications
+     */
+    public function getApplications()
+    {
+        return $this->applications;
+    }
+
+    /**
      * Return's the containers config node
      *
      * @return \TechDivision\ApplicationServer\Api\Node\ContainerNode
