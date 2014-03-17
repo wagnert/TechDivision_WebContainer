@@ -156,6 +156,16 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     }
 
     /**
+     * Return's template file path for errors page
+     *
+     * @return string
+     */
+    public function getErrorsPageTemplatePath()
+    {
+        return (string)$this->node->getParam('errorsPageTemplatePath');
+    }
+
+    /**
      * Return's worker number
      *
      * @return int
