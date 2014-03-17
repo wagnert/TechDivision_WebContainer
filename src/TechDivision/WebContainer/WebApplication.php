@@ -83,7 +83,7 @@ class WebApplication extends AbstractApplication
     /**
      * Bounds the application to the passed virtual host.
      * 
-     * @param \TechDivision\WebContainer\VirtualHost $virtualHost
+     * @param \TechDivision\WebContainer\VirtualHost $virtualHost The virtual host to add
      * 
      * @return void
      */
