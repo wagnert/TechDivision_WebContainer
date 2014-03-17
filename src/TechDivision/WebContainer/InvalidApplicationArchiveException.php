@@ -1,6 +1,7 @@
 <?php
+
 /**
- * TechDivision\WebContainer\Deployment
+ * TechDivision\WebContainer\InvalidApplicationArchiveException
  *
  * NOTICE OF LICENSE
  *
@@ -12,7 +13,7 @@
  *
  * @category  Appserver
  * @package   TechDivision_WebContainer
- * @author    Johann Zelger <jz@techdivision.com>
+ * @author    Markus Stockbauer <ms@techdivision.com>
  * @copyright 2014 TechDivision GmbH <info@techdivision.com>
  * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  * @link      http://www.appserver.io
@@ -20,28 +21,16 @@
 
 namespace TechDivision\WebContainer;
 
-use TechDivision\ApplicationServer\AbstractDeployment;
-
 /**
- * Class Deployment
+ * Is thrown if a failure occured when parsing the web applications deployment descriptor.
  *
  * @category  Appserver
  * @package   TechDivision_WebContainer
- * @author    Johann Zelger <jz@techdivision.com>
+ * @author    Markus Stockbauer <ms@techdivision.com>
  * @copyright 2014 TechDivision GmbH <info@techdivision.com>
  * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  * @link      http://www.appserver.io
  */
-class Deployment extends AbstractDeployment
+class InvalidApplicationArchiveException extends \Exception
 {
-
-    /**
-     * Returns an array with available applications.
-     *
-     * @return \TechDivision\ApplicationServer\Interfaces\DeploymentInterface The deployment instance
-     */
-    public function deploy()
-    {
-        return $this;
-    }
 }
