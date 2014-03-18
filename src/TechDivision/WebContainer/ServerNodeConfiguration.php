@@ -290,8 +290,8 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
         if (!$this->authentications) {
             // iterate config
             foreach ($this->node->getAuthentications() as $authentication) {
-                $authenticationType = $authentication->getType();
-                $this->authentications[$authenticationType] = $authentication->getParamsAsArray();
+                $authenticationUri = $authentication->getUri();
+                $this->authentications[$authenticationUri] = $authentication->getParamsAsArray();
             }
         }
         return $this->authentications;
