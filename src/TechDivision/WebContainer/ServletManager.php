@@ -42,52 +42,52 @@ use TechDivision\WebContainer\InvalidServletMappingException;
  */
 class ServletManager implements ServletContext
 {
-    
-    /**
-     * The application instance.
-     *
-     * @var \TechDivision\ApplicationServer\Interfaces\ApplicationInterface
-     */
-    protected $application;
 
     /**
-     * The servlets
+     * The servlets.
      *
      * @var array
      */
     protected $servlets = array();
 
     /**
-     * Array that contains the servlet mappings
+     * Array that contains the servlet mappings.
      *
      * @var array
      */
     protected $servletMappings = array();
 
     /**
-     * Array with the servlet's init parameters found in the web.xml configuration file.
+     * Array with the servlets init parameters found in the web.xml configuration file.
      *
      * @var array
      */
     protected $initParameter = array();
 
     /**
-     * Teh webapp's security context.
+     * Teh web applications security context.
      *
      * @var array
      */
     protected $securedUrlConfigs = array();
-
+    
     /**
-     * Set's the application instance.
-     *
-     * @param \TechDivision\ApplicationServer\Interfaces\ApplicationInterface $application The application instance
-     *
+     * The absolute path to the web application.
+     * 
+     * @var string
+     */
+    protected $webappPath;
+    
+    /**
+     * Injects the absolute path to the web application.
+     * 
+     * @param string $webappPath The path to this web application
+     * 
      * @return void
      */
-    public function __construct($application)
+    public function injectWebappPath($webappPath)
     {
-        $this->application = $application;
+        $this->webappPath = $webappPath;
     }
 
     /**
@@ -157,10 +157,9 @@ class ServletManager implements ServletContext
                 $instance = new $className();
                 
                 // initialize the servlet configuration
-                $servletConfig = new ServletConfiguration($this);
-                
-                // set the unique servlet name
-                $servletConfig->setServletName($servletName);
+                $servletConfig = new ServletConfiguration();
+                $servletConfig->injectServletContext($this);
+                $servletConfig->injectServletName($servletName);
                 
                 // append the init params to the servlet configuration
                 foreach ($servlet->{'init-param'} as $initParam) {
@@ -194,19 +193,6 @@ class ServletManager implements ServletContext
                 
                 // prepend the url-pattern - servlet mapping to the servlet mappings
                 $this->servletMappings[$urlPattern] = $servletName;
-                
-                // log a message that the servlet has successfully been registered
-                $this->getApplication()
-                    ->getInitialContext()
-                    ->getSystemLogger()
-                    ->debug(
-                        sprintf(
-                            'Successfully registered servlet %s for url-pattern %s in application %s',
-                            $servletName,
-                            $urlPattern,
-                            $this->getApplication()->getName()
-                        )
-                    );
             }
         }
     }
@@ -242,6 +228,16 @@ class ServletManager implements ServletContext
     public function getServletMappings()
     {
         return $this->servletMappings;
+    }
+
+    /**
+     * Returns the resource locator for the servlets.
+     *
+     * @return \TechDivision\WebContainer\ResourceLocator The resource locator for the servlets
+     */
+    public function getServletLocator()
+    {
+        return $this->servletLocator;
     }
 
     /**
@@ -292,17 +288,7 @@ class ServletManager implements ServletContext
      */
     public function getWebappPath()
     {
-        return $this->getApplication()->getWebappPath();
-    }
-
-    /**
-     * Returns the application instance.
-     *
-     * @return \TechDivision\ApplicationServer\Interfaces\ApplicationInterface The application instance
-     */
-    public function getApplication()
-    {
-        return $this->application;
+        return $this->webappPath;
     }
 
     /**
@@ -312,7 +298,7 @@ class ServletManager implements ServletContext
      */
     public function getConfiguration()
     {
-        return $this->getApplication()->getConfiguration();
+        throw new \Exception(__METHOD__ . ' not implemented');
     }
 
     /**

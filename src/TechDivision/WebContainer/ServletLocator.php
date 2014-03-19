@@ -41,85 +41,25 @@ class ServletLocator implements ResourceLocator
 {
 
     /**
-     * The servlet manager instance.
+     * Tries to locate the resource related with the request.
      *
-     * @var \TechDivision\Servlet\ServletContext
-     */
-    protected $servletManager;
-    
-    /**
-     * The array with the servlet mappings.
-     * 
-     * @var array
-     */
-    protected $servletMappings;
-
-    /**
-     * Initializes the locator with the actual servlet manager instance.
-     *
-     * @param \TechDivision\Servlet\ServletContext $servletManager The servlet manager instance
-     *
-     * @return void
-     */
-    public function __construct(ServletContext $servletManager)
-    {
-        
-        // initialize the servlet manager
-        $this->servletManager = $servletManager;
-
-        // retrieve the registered servlets
-        $this->servletMappings = $this->getServletContext()->getServletMappings();
-    }
-
-    /**
-     * Returns the servlet manager instance to use.
-     *
-     * @return \TechDivision\Servlet\ServletContext The servlet manager instance to use
-     */
-    public function getServletContext()
-    {
-        return $this->servletManager;
-    }
-
-    /**
-     * Returns the array with the servlet mappings.
-     *
-     * @return array The array with the servlet mappings
-     */
-    public function getServletMappings()
-    {
-        return $this->servletMappings;
-    }
-
-    /**
-     * Returns the actual application instance.
-     *
-     * @return \TechDivision\ApplicationServer\Interfaces\ApplicationInterface The application instance
-     */
-    public function getApplication()
-    {
-        return $this->getServletContext()->getApplication();
-    }
-
-    /**
-     * Tries to locate a servlet for the passed request instance.
-     *
+     * @param \TechDivision\Servlet\ServletContext $servletContext The servlet context that handles the servlets
      * @param \TechDivision\Servlet\ServletRequest $servletRequest The request instance to return the servlet for
      *
      * @return \TechDivision\Servlet\Servlet The requested servlet
-     * @throws \TechDivision\WebContainer\ServletNotFoundException Is thrown if no servlet can be found for the passed request
      * @see \TechDivision\WebContainer\ResourceLocator::locate()
+     * @throws \TechDivision\WebContainer\ServletNotFoundException Is thrown if no servlet can be found for the passed request
      */
-    public function locate(ServletRequest $servletRequest)
+    public function locate(ServletContext $servletContext, ServletRequest $servletRequest)
     {
         
         // load the path to the (almost virtual servlet)
         $servletPath = $servletRequest->getServletPath();
         
         // iterate over all servlets and return the matching one
-        foreach ($this->getServletMappings() as $urlPattern => $servletName) {
+        foreach ($servletContext->getServletMappings() as $urlPattern => $servletName) {
             if (fnmatch($urlPattern, $servletPath)) {
-                return $this->getServletContext()->getServlet($servletName);
+                return $servletContext->getServlet($servletName);
             }
         }
         
