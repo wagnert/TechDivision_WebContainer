@@ -24,11 +24,11 @@ namespace TechDivision\WebContainer;
 use TechDivision\Servlet\Servlet;
 use TechDivision\Servlet\ServletContext;
 use TechDivision\Servlet\Http\HttpServletRequest;
+use TechDivision\ServletEngine\Http\RequestContext;
 use TechDivision\ApplicationServer\AbstractApplication;
 use TechDivision\ApplicationServer\Api\ContainerService;
 use TechDivision\ApplicationServer\Api\Node\AppNode;
 use TechDivision\ApplicationServer\Api\Node\NodeInterface;
-use TechDivision\ApplicationServer\Interfaces\ContextInterface;
 
 /**
  * The application instance holds all information about the deployed application
@@ -41,67 +41,301 @@ use TechDivision\ApplicationServer\Interfaces\ContextInterface;
  * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  * @link      http://www.appserver.io
  */
-class WebApplication extends AbstractApplication
+class WebApplication extends AbstractApplication implements RequestContext
 {
 
     /**
-     * Has been automatically invoked by the container after the application
-     * instance has been created.
+     * The app node the application is belonging to.
      *
-     * @return \TechDivision\ApplicationServer\Interfaces\ApplicationInterface The connected application
+     * @var \TechDivision\ApplicationServer\Api\Node\AppNode
      */
-    public function connect()
-    {
+    protected $appNode;
 
-        try {
-            
-            // initialize the class loader with the additional folders
-            set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath());
-            set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'classes');
-            set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'lib');
-    
-            // initialize the servlet manager instance
-            $servletContext = new ServletManager($this);
-    
-            // set the servlet manager
-            $this->setServletContext($servletContext->initialize());
-            
-            // initialize the servlet locator instance
-            $servletLocator = new ServletLocator($this->getServletContext());
-            
-            // set the servlet locator
-            $this->setServletLocator($servletLocator);
-            
-        } catch (InvalidApplicationArchiveException $iaae) {
-            // do nothing here, we simple doesn't have a web application
-        }
-
-        // return the instance itself
-        return $this;
-    }
+    /**
+     * The applications base directory.
+     *
+     * @var string
+     */
+    protected $appBase;
     
     /**
-     * Bounds the application to the passed virtual host.
+     * The web containers base directory.
      * 
-     * @param \TechDivision\WebContainer\VirtualHost $virtualHost The virtual host to add
+     * @var string
+     */
+    protected $baseDirectory;
+
+    /**
+     * The app node the application is belonging to.
+     *
+     * @var \TechDivision\ApplicationServer\Api\Node\ContainerNode
+     */
+    protected $containerNode;
+
+    /**
+     * The unique application name.
+     *
+     * @var string
+     */
+    protected $name;
+
+    /**
+     * Array with available VHost configurations.
+     *
+     * @var array
+     */
+    protected $vhosts = array();
+
+    /**
+     * The datasources the app might use.
+     *
+     * @var array
+     */
+    protected $datasources = array();
+
+    /**
+     * The host configuration.
+     *
+     * @var \TechDivision\ApplicationServer\Configuration
+     */
+    protected $configuration;
+
+    /**
+     * The initial context instance.
+     *
+     * @var \TechDivision\ApplicationServer\InitialContext
+     */
+    protected $initialContext;
+    
+    /**
+     * The session manager that is bound to the request.
+     * 
+     * @var \TechDivision\ServletEngine\SessionManager
+     */
+    protected $sessionManager;
+    
+    /**
+     * The authentication manager that is bound to the request.
+     * 
+     * @var \TechDivision\ServletEngine\AuthenticationManager
+     */
+    protected $authenticationManager;
+    
+    /**
+     * The servlet context that handles the servlets of this application.
+     * 
+     * @var \TechDivision\Servlet\ServletContext
+     */
+    protected $servletContext;
+    
+    /**
+     * The resource locator used to locate the servlet that matches the actual request.
+     * 
+     * @var \TechDivision\WebContainer\ResourceLocator
+     */
+    protected $resourceLocator;
+    
+    /**
+     * Initializes the application context.
      * 
      * @return void
      */
-    public function addVirtualHost(VirtualHost $virtualHost)
+    public function __construct()
     {
-        $this->vhosts[] = $virtualHost;
+    }
+    
+    /**
+     * Returns a attribute from the application context.
+     * 
+     * @param string $name the name of the attribute to return
+     * 
+     * @return void
+     */
+    public function getAttribute($name)
+    {
+        throw new \Exception(__METHOD__ . ' not implemented yet');
+    }
+    
+    /**
+     * The initial context instance.
+     * 
+     * @param \TechDivision\ApplicationServer\InitialContext $initialContext The initial context instance
+     * 
+     * @return void
+     */
+    public function injectInitialContext($initialContext)
+    {
+        $this->initialContext = $initialContext;
+    }
+    
+    /**
+     * Injects the application name.
+     * 
+     * @param string $name The application name
+     * 
+     * @return void
+     */
+    public function injectName($name)
+    {
+        $this->name = $name;
+    }
+    
+    /**
+     * Injects the datasources the app might use.
+     * 
+     * @param array $datasources The datasources the app might use
+     * 
+     * @return void
+     */
+    public function injectDatasources($datasources)
+    {
+        $this->datasources = $datasources;
+    }
+    
+    /**
+     * Injects the applications base directory.
+     * 
+     * @param string $appBase The applications base directory
+     * 
+     * @return void
+     */
+    public function injectAppBase($appBase)
+    {
+        $this->appBase = $appBase;
+    }
+    
+    /**
+     * Injects the containers base directory.
+     * 
+     * @param string $baseDirectory The web containers base directory
+     * 
+     * @return void
+     */
+    public function injectBaseDirectory($baseDirectory)
+    {
+        $this->baseDirectory = $baseDirectory;
     }
 
     /**
-     * Sets the applications servlet context instance.
+     * Injects the applications servlet context instance.
      *
      * @param \TechDivision\Servlet\ServletContext $servletContext The servlet context instance
      *
      * @return void
      */
-    public function setServletContext(ServletContext $servletContext)
+    public function injectServletContext(ServletContext $servletContext)
     {
         $this->servletContext = $servletContext;
+    }
+    
+    /**
+     * Injects the resource locator that locates the requested servlet.
+     * 
+     * @param \TechDivision\WebContainer\ResourceLocator $resourceLocator The resource locator
+     * 
+     * @return void
+     */
+    public function injectResourceLocator(ResourceLocator $resourceLocator)
+    {
+        $this->resourceLocator = $resourceLocator;
+    }
+    
+    /**
+     * Injects the session manager that is bound to the request.
+     * 
+     * @param \TechDivision\ServletEngine\SessionManager $sessionManager The session manager to bound this request to
+     * 
+     * @return void
+     */
+    public function injectSessionManager($sessionManager)
+    {
+        $this->sessionManager = $sessionManager;
+    }
+    
+    /**
+     * Injects the authentication manager that is bound to the request.
+     * 
+     * @param \TechDivision\ServletEngine\AuthenticationManager $authenticationManager The authentication manager to bound this request to
+     * 
+     * @return void
+     */
+    public function injectAuthenticationManager($authenticationManager)
+    {
+        $this->authenticationManager = $authenticationManager;
+    }
+
+    /**
+     * Injects the container node the application is belonging to
+     *
+     * @param \TechDivision\ApplicationServer\Api\Node\ContainerNode $containerNode The container node the application is belonging to
+     *
+     * @return void
+     */
+    public function injectContainerNode($containerNode)
+    {
+        $this->containerNode = $containerNode;
+    }
+    
+    /**
+     * Returns the session manager instance associated with this request.
+     * 
+     * @return \TechDivision\ServletEngine\SessionManager The session manager instance
+     */
+    public function getSessionManager()
+    {
+        return $this->sessionManager;
+    }
+    
+    /**
+     * Returns the authentication manager instance associated with this request.
+     * 
+     * @return \TechDivision\ServletEngine\AuthenticationManager The authentication manager instance
+     */
+    public function getAuthenticationManager()
+    {
+        return $this->authenticationManager;
+    }
+
+    /**
+     * Set's the app node the application is belonging to
+     *
+     * @param AppNode $appNode The app node the application is belonging to
+     *
+     * @return void
+     */
+    public function setAppNode($appNode)
+    {
+        $this->appNode = $appNode;
+    }
+
+    /**
+     * Return's the app node the application is belonging to.
+     *
+     * @return AppNode The app node the application is belonging to
+     */
+    public function getAppNode()
+    {
+        return $this->appNode;
+    }
+
+    /**
+     * Return's the app node the application is belonging to.
+     *
+     * @return ContainerNode The app node the application is belonging to
+     */
+    public function getContainerNode()
+    {
+        return $this->containerNode;
+    }
+
+    /**
+     * Returns the application name (that has to be the class namespace, e.g. TechDivision\Example)
+     *
+     * @return string The application name
+     */
+    public function getName()
+    {
+        return $this->name;
     }
 
     /**
@@ -115,38 +349,108 @@ class WebApplication extends AbstractApplication
     }
 
     /**
-     * Sets the applications servlet locator instance.
+     * Return the resource locator instance.
      *
-     * @param \TechDivision\WebContainer\ResourceLocator $servletLocator The servlet locator instance
-     *
-     * @return void
+     * @return \TechDivision\WebContainer\ResourceLocator The resource locator instance
      */
-    public function setServletLocator(ResourceLocator $servletLocator)
+    public function getResourceLocator()
     {
-        $this->servletLocator = $servletLocator;
+        return $this->resourceLocator;
     }
 
     /**
-     * Return the servlet locator instance.
+     * (non-PHPdoc)
      *
-     * @return \TechDivision\WebContainer\ResourceLocator The servlet locator instance
+     * @param string $directoryToAppend The directory to append to the base directory
+     *
+     * @return string The base directory with appended dir if given
      */
-    public function getServletLocator()
+    public function getBaseDirectory($directoryToAppend = null)
     {
-        return $this->servletLocator;
+        $baseDirectory = $this->baseDirectory;
+        if ($directoryToAppend != null) {
+            $baseDirectory .= $directoryToAppend;
+        }
+        return $baseDirectory;
     }
 
     /**
-     * Locates and returns the servlet instance that handles
-     * the request passed as parameter.
-     * 
-     * @param \TechDivision\Servlet\Http\HttpServletRequest $servletRequest The request instance
+     * (non-PHPdoc)
      *
-     * @return \TechDivision\Servlet\Servlet The servlet instance to handle the request
+     * @return string The path to the webapps folder
+     * @see ApplicationService::getWebappPath()
      */
-    public function locate(HttpServletRequest $servletRequest)
+    public function getWebappPath()
     {
-        return $this->getServletLocator()->locate($servletRequest);
+        return $this->getBaseDirectory($this->getAppBase() . DIRECTORY_SEPARATOR . $this->getName());
+    }
+
+    /**
+     * (non-PHPdoc)
+     *
+     * @return string The app base
+     * @see ContainerService::getAppBase()
+     */
+    public function getAppBase()
+    {
+        return $this->appBase;
+    }
+
+    /**
+     * (non-PHPdoc)
+     *
+     * @param string $className The fully qualified class name to return the instance for
+     * @param array  $args      Arguments to pass to the constructor of the instance
+     *
+     * @return object The instance itself
+     * @see InitialContext::newInstance()
+     */
+    public function newInstance($className, array $args = array())
+    {
+        return $this->getInitialContext()->newInstance($className, $args);
+    }
+
+    /**
+     * (non-PHPdoc)
+     *
+     * @param string $className The API service class name to return the instance for
+     *
+     * @return ServiceInterface The service instance
+     * @see InitialContext::newService()
+     */
+    public function newService($className)
+    {
+        return $this->getInitialContext()->newService($className);
+    }
+
+    /**
+     * Returns the initial context instance.
+     *
+     * @return InitialContext The initial Context
+     */
+    public function getInitialContext()
+    {
+        return $this->initialContext;
+    }
+
+    /**
+     * Return's the applications available VHost configurations.
+     *
+     * @return array The available VHost configurations
+     */
+    public function getVhosts()
+    {
+        return $this->vhosts;
+    }
+
+    /**
+     * Returns the application's usable datasources.
+     *
+     * @return array The available datasources
+     */
+    public function getDatasources()
+    {
+        return $this->datasources;
     }
 
     /**
@@ -169,5 +473,81 @@ class WebApplication extends AbstractApplication
         }
         
         return false;
+    }
+
+    /**
+     * (non-PHPdoc)
+     *
+     * @return AppNode The node representation of the application
+     * @see ApplicationInterface::newAppNode()
+     */
+    public function newAppNode()
+    {
+        // create a new AppNode and initialize it with the values from this instance
+        $appNode = new AppNode();
+        $appNode->setNodeName('application');
+        $appNode->setName($this->getName());
+        $appNode->setWebappPath($this->getWebappPath());
+        $appNode->setDatasources($this->getDatasources());
+        $appNode->setParentUuid($this->getContainerNode()->getParentUuid());
+        $appNode->setUuid($appNode->newUuid());
+        
+        // set the AppNode in the instance itself
+        $this->setAppNode($appNode);
+
+        // return the AppNode instance
+        return $appNode;
+    }
+
+    /**
+     * Has been automatically invoked by the container after the application
+     * instance has been created.
+     *
+     * @return \TechDivision\ApplicationServer\Interfaces\ApplicationInterface The connected application
+     */
+    public function connect()
+    {
+
+        try {
+            
+            // initialize the class loader with the additional folders
+            set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath());
+            set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'classes');
+            set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'lib');
+
+            // load and initialize the servlets
+            $this->getServletContext()->initialize();
+            
+        } catch (InvalidApplicationArchiveException $iaae) {
+            // do nothing here, we simple doesn't have a web application
+        }
+
+        // return the instance itself
+        return $this;
+    }
+    
+    /**
+     * Bounds the application to the passed virtual host.
+     * 
+     * @param \TechDivision\WebContainer\VirtualHost $virtualHost The virtual host to add
+     * 
+     * @return void
+     */
+    public function addVirtualHost(VirtualHost $virtualHost)
+    {
+        $this->vhosts[] = $virtualHost;
+    }
+
+    /**
+     * Locates and returns the servlet instance that handles
+     * the request passed as parameter.
+     * 
+     * @param \TechDivision\Servlet\Http\HttpServletRequest $servletRequest The request instance
+     *
+     * @return \TechDivision\Servlet\Servlet The servlet instance to handle the request
+     */
+    public function locate(HttpServletRequest $servletRequest)
+    {
+        return $this->getResourceLocator()->locate($this->getServletContext(), $servletRequest);
     }
 }

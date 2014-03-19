@@ -23,6 +23,7 @@
 namespace TechDivision\WebContainer;
 
 use TechDivision\Servlet\ServletRequest;
+use TechDivision\Servlet\ServletContext;
 
 /**
  * Interface for the resource locator instances.
@@ -42,9 +43,10 @@ interface ResourceLocator
     /**
      * Tries to locate the resource related with the request.
      *
+     * @param \TechDivision\Servlet\ServletContext $servletContext The servlet context that handles the servlets
      * @param \TechDivision\Servlet\ServletRequest $servletRequest The request instance to return the servlet for
      *
      * @return \TechDivision\Servlet\Servlet The requested servlet
      */
-    public function locate(ServletRequest $servletRequest);
+    public function locate(ServletContext $servletContext, ServletRequest $servletRequest);
 }

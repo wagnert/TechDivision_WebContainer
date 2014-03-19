@@ -63,10 +63,24 @@ class ServletConfiguration implements ServletConfig
      * Initializes the servlet configuration with the servlet context instance.
      *
      * @param \TechDivision\Servlet\ServletContext $servletContext The servlet context instance
+     * 
+     * @return void
      */
-    public function __construct($servletContext)
+    public function injectServletContext($servletContext)
     {
         $this->servletContext = $servletContext;
+    }
+    
+    /**
+     * Set's the servlet's Uname from the web.xml configuration file.
+     * 
+     * @param string $servletName The servlet name
+     *
+     * @return void
+     */
+    public function injectServletName($servletName)
+    {
+        $this->servletName = $servletName;
     }
 
     /**
@@ -78,58 +92,6 @@ class ServletConfiguration implements ServletConfig
     {
         return $this->servletContext;
     }
-
-    /**
-     * Returns the application instance.
-     *
-     * @return \TechDivision\ApplicationServer\Interfaces\ApplicationInterface The application instance
-     */
-    public function getApplication()
-    {
-        return $this->getServletContext()->getApplication();
-    }
-
-    /**
-     * Returns the host configuration.
-     *
-     * @return \TechDivision\ApplicationServer\Configuration The host configuration
-     */
-    public function getConfiguration()
-    {
-        return $this->getApplication()->getConfiguration();
-    }
-
-    /**
-     * Returns the webapp base path.
-     *
-     * @return string The webapp base path
-     */
-    public function getWebappPath()
-    {
-        return $this->getApplication()->getWebappPath();
-    }
-
-    /**
-     * Returns the path to the appserver webapp base directory.
-     *
-     * @return string The path to the appserver webapp base directory
-     */
-    public function getAppBase()
-    {
-        return $this->getApplication()->getAppBase();
-    }
-    
-    /**
-     * Set's the servlet's Uname from the web.xml configuration file.
-     * 
-     * @param string $servletName The servlet name
-     *
-     * @return void
-     */
-    public function setServletName($servletName)
-    {
-        $this->servletName = $servletName;
-    }
     
     /**
      * Return's the servlet's name from the web.xml configuration file.
@@ -140,6 +102,26 @@ class ServletConfiguration implements ServletConfig
     public function getServletName()
     {
         return $this->servletName;
+    }
+
+    /**
+     * Returns the path to the appserver webapp base directory.
+     *
+     * @return string The path to the appserver webapp base directory
+     */
+    public function getAppBase()
+    {
+        return $this->getServletContext()->getAppBase();
+    }
+
+    /**
+     * Returns the webapp base path.
+     *
+     * @return string The webapp base path
+     */
+    public function getWebappPath()
+    {
+        return $this->getServletContext()->getWebappPath();
     }
     
     /**
