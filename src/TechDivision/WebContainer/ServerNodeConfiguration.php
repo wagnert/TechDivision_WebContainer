@@ -83,7 +83,7 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
      *
      * @var array
      */
-    protected $rewrites;
+    protected $rewrites = array();
 
     /**
      * Constructs config
@@ -227,6 +227,7 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
                 $this->connectionHandlers[$connectionHandler->getUuid()] = $connectionHandler->getType();
             }
         }
+
         return $this->connectionHandlers;
     }
 
@@ -242,6 +243,7 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
                 $this->modules[$module->getUuid()] = $module->getType();
             }
         }
+
         return $this->modules;
     }
 
@@ -257,6 +259,7 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
                 $this->handlers[$fileHandler->getExtension()] = $fileHandler->getName();
             }
         }
+
         return $this->handlers;
     }
 
@@ -273,10 +276,13 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
                 $virtualHostNames = explode(' ', $virtualHost->getName());
                 foreach ($virtualHostNames as $virtualHostName) {
                     // set all virtual hosts params per key for faster matching later on
-                    $this->virtualHosts[trim($virtualHostName)] = $virtualHost->getParamsAsArray();
+                    $this->virtualHosts[trim($virtualHostName)]['params'] = $virtualHost->getParamsAsArray();
+                    // Also add the rewrites to the virtual host configuration
+                    $this->virtualHosts[trim($virtualHostName)]['rewrites'] = $virtualHost->getRewritesAsArray();
                 }
             }
         }
+
         return $this->virtualHosts;
     }
 
@@ -294,6 +300,7 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
                 $this->authentications[$authenticationUri] = $authentication->getParamsAsArray();
             }
         }
+
         return $this->authentications;
     }
 
@@ -319,24 +326,44 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
 
     /**
      * Returns the rewrite configuration.
-     * 
+     *
      * @return array
      */
     public function getRewrites()
     {
         // init rewrites
         if (!$this->rewrites) {
-            // prepare the array with the rewrite rules
-            foreach ($this->node->getRewrites() as $rewrite) {
-                $this->rewrites[] = array(
-                    'condition' => $rewrite->getCondition(),
-                    'target' => $rewrite->getTarget(),
-                    'flag' => $rewrite->getFlag()
-                );
-            }
+
+            $this->rewrites = array();
         }
-        
+
+        // prepare the array with the rewrite rules
+        foreach ($this->node->getRewrites() as $rewrite) {
+
+            // Build up the array entry
+            $this->rewrites[] = array(
+                'condition' => $rewrite->getCondition(),
+                'target' => $rewrite->getTarget(),
+                'flag' => $rewrite->getFlag()
+            );
+        }
+
         // return the rewrites
         return $this->rewrites;
+    }
+
+    /**
+     * Will prepend a given array of rewrite arrays to the global rewrite pool.
+     * Rewrites arrays have to be the form of array('condition' => ..., 'target' => ..., 'flag' => ...)
+     *
+     * @param array $rewriteArrays The array of rewrite arrays(!) to prepend
+     *
+     * @return boolean
+     */
+    public function prependRewriteArrays(array $rewriteArrays)
+    {
+        $this->rewrites = array_merge($rewriteArrays, $this->rewrites);
+
+        return (bool) $this->rewrites;
     }
 }
