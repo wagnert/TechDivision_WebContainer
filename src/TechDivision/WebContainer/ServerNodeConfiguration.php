@@ -156,6 +156,26 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     }
 
     /**
+     * Return's keep-alive max connection
+     *
+     * @return int
+     */
+    public function getKeepAliveMax()
+    {
+        return (int)$this->node->getParam('keepAliveMax');
+    }
+
+    /**
+     * Return's keep-alive timeout
+     *
+     * @return int
+     */
+    public function getKeepAliveTimeout()
+    {
+        return (int)$this->node->getParam('keepAliveTimeout');
+    }
+
+    /**
      * Return's template file path for errors page
      *
      * @return string
