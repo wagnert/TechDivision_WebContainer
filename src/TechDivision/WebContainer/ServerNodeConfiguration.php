@@ -79,11 +79,18 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     protected $modules;
 
     /**
-     * Hold's the rewrites array
+     * Holds the rewrites array
      *
      * @var array
      */
     protected $rewrites = array();
+
+    /**
+     * Holds the environmentVariables array
+     *
+     * @var array
+     */
+    protected $environmentVariables = array();
 
     /**
      * Constructs config
@@ -279,6 +286,10 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
                     $this->virtualHosts[trim($virtualHostName)]['params'] = $virtualHost->getParamsAsArray();
                     // Also add the rewrites to the virtual host configuration
                     $this->virtualHosts[trim($virtualHostName)]['rewrites'] = $virtualHost->getRewritesAsArray();
+                    // Also add the environmentVariables to the virtual host configuration
+                    $this->virtualHosts[trim(
+                        $virtualHostName
+                    )]['environmentVariables'] = $virtualHost->getEnvironmentVariablesAsArray();
                 }
             }
         }
@@ -350,5 +361,23 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
 
         // return the rewrites
         return $this->rewrites;
+    }
+
+    /**
+     * Returns the environment variable configuration
+     *
+     * @return array
+     */
+    public function getEnvironmentVariables()
+    {
+        // init EnvironmentVariables
+        if (!$this->environmentVariables) {
+
+            // Get the nodes from our main node
+            $this->environmentVariables = $this->node->getEnvironmentVariablesAsArray();
+        }
+
+        // return the environmentVariables
+        return $this->environmentVariables;
     }
 }
