@@ -529,5 +529,4 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
         }
         return $accesses;
     }
-
 }
