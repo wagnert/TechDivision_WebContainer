@@ -250,6 +250,16 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     }
 
     /**
+     * Return's directory index definition
+     *
+     * @return string
+     */
+    public function getDirectoryIndex()
+    {
+        return $this->node->getParam('directoryIndex');
+    }
+
+    /**
      * Return's connection handlers
      *
      * @return array
