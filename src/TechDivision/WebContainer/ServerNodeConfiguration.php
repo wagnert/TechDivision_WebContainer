@@ -83,7 +83,7 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
      *
      * @var array
      */
-    protected $rewrites = array();
+    protected $rewrites;
 
     /**
      * Hold's the accesses array
@@ -97,7 +97,7 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
      *
      * @var array
      */
-    protected $environmentVariables = array();
+    protected $environmentVariables;
 
     /**
      * Constructs config
@@ -257,9 +257,7 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     public function getConnectionHandlers()
     {
         if (!$this->connectionHandlers) {
-            foreach ($this->node->getConnectionHandlers() as $connectionHandler) {
-                $this->connectionHandlers[$connectionHandler->getUuid()] = $connectionHandler->getType();
-            }
+            $this->connectionHandlers = $this->prepareConnectionHandlers($this->node);
         }
 
         return $this->connectionHandlers;
@@ -434,7 +432,10 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
                 // set all virtual hosts params per key for faster matching later on
                 $virutalHosts[trim($virtualHostName)] = array(
                     'params' => $virtualHost->getParamsAsArray(),
-                    'rewrites' => $this->prepareRewrites($virtualHost)
+                    'rewrites' => $this->prepareRewrites($virtualHost),
+                    'environmentVariables' => $this->prepareEnvironmentVariables($virtualHost),
+                    'accesses' => $this->prepareAccesses($virtualHost),
+                    // todo: add authentications
                 );
             }
         }
@@ -473,15 +474,8 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     public function prepareEnvironmentVariables(NodeInterface $node)
     {
         $environmentVariables = array();
-        // prepare the array with the environment variables
-        foreach ($data->environmentVariables as $environmentVariable) {
-
-            // Build up the array entry
-            $environmentVariables[] = array(
-                'condition' => $environmentVariable->condition,
-                'definition' => $environmentVariable->definition
-            );
-        }
+        // Get the nodes from our main node
+        $environmentVariables = $this->node->getEnvironmentVariablesAsArray();
         return $environmentVariables;
     }
 
@@ -494,11 +488,9 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     {
         // init EnvironmentVariables
         if (!$this->environmentVariables) {
-
             // Get the nodes from our main node
-            $this->environmentVariables = $this->node->getEnvironmentVariablesAsArray();
+            $this->environmentVariables = $this->prepareEnvironmentVariables($this->node);
         }
-
         // return the environmentVariables
         return $this->environmentVariables;
     }
@@ -530,14 +522,10 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     public function prepareAccesses(NodeInterface $node)
     {
         $accesses = array();
-        foreach ($data->accesses as $access) {
-            $accessType = $access->type;
-            // get all params
-            $params = get_object_vars($access);
-            // remove type
-            unset($params["type"]);
+        foreach ($node->getAccesses() as $access) {
+            $accessType = $access->getType();
             // set all accesses information's
-            $accesses[$accessType][] = $params;
+            $accesses[$accessType][] = $access->getParamsAsArray();
         }
         return $accesses;
     }
