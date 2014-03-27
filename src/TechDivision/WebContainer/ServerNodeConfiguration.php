@@ -83,7 +83,14 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
      *
      * @var array
      */
-    protected $rewrites = array();
+    protected $rewrites;
+
+    /**
+     * Hold's the accesses array
+     *
+     * @var array
+     */
+    protected $accesses;
 
     /**
      * Constructs config
@@ -243,11 +250,8 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     public function getConnectionHandlers()
     {
         if (!$this->connectionHandlers) {
-            foreach ($this->node->getConnectionHandlers() as $connectionHandler) {
-                $this->connectionHandlers[$connectionHandler->getUuid()] = $connectionHandler->getType();
-            }
+            $this->connectionHandlers = $this->prepareConnectionHandlers($this->node);
         }
-
         return $this->connectionHandlers;
     }
 
@@ -259,11 +263,8 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     public function getModules()
     {
         if (!$this->modules) {
-            foreach ($this->node->getModules() as $module) {
-                $this->modules[$module->getUuid()] = $module->getType();
-            }
+            $this->modules = $this->prepareModules($this->node);
         }
-
         return $this->modules;
     }
 
@@ -275,9 +276,7 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     public function getHandlers()
     {
         if (!$this->handlers) {
-            foreach ($this->node->getFileHandlers() as $fileHandler) {
-                $this->handlers[$fileHandler->getExtension()] = $fileHandler->getName();
-            }
+            $this->handlers = $this->prepareHandlers($this->node);
         }
 
         return $this->handlers;
@@ -291,16 +290,7 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     public function getVirtualHosts()
     {
         if (!$this->virtualHosts) {
-            // iterate config
-            foreach ($this->node->getVirtualHosts() as $virtualHost) {
-                $virtualHostNames = explode(' ', $virtualHost->getName());
-                foreach ($virtualHostNames as $virtualHostName) {
-                    // set all virtual hosts params per key for faster matching later on
-                    $this->virtualHosts[trim($virtualHostName)]['params'] = $virtualHost->getParamsAsArray();
-                    // Also add the rewrites to the virtual host configuration
-                    $this->virtualHosts[trim($virtualHostName)]['rewrites'] = $virtualHost->getRewritesAsArray();
-                }
-            }
+            $this->virtualHosts = $this->prepareVirtualHosts($this->node);
         }
 
         return $this->virtualHosts;
@@ -314,13 +304,8 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     public function getAuthentications()
     {
         if (!$this->authentications) {
-            // iterate config
-            foreach ($this->node->getAuthentications() as $authentication) {
-                $authenticationUri = $authentication->getUri();
-                $this->authentications[$authenticationUri] = $authentication->getParamsAsArray();
-            }
+            $this->authentications = $this->prepareAuthentications($this->node);
         }
-
         return $this->authentications;
     }
 
@@ -353,22 +338,179 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     {
         // init rewrites
         if (!$this->rewrites) {
-
-            $this->rewrites = array();
+            $this->rewrites = $this->prepareRewrites($this->node);
         }
+        // return the rewrites
+        return $this->rewrites;
+    }
 
+    /**
+     * Returns the access configuration.
+     *
+     * @return array
+     */
+    public function getAccesses()
+    {
+        // init accesses
+        if (!$this->accesses) {
+            $this->accesses = $this->prepareAccesses($this->node);
+        }
+        return $this->accesses;
+    }
+
+    /**
+     * Prepares the modules array based on a node implementing NodeInterface
+     *
+     * @param \TechDivision\ApplicationServer\Api\Node\NodeInterface $node The node instance
+     *
+     * @return array
+     */
+    public function prepareModules(NodeInterface $node)
+    {
+        $modules = array();
+        foreach ($node->getModules() as $module) {
+            $modules[$module->getUuid()] = $module->getType();
+        }
+        return $modules;
+    }
+
+    /**
+     * Prepares the connectionHandlers array based on a node implementing NodeInterface
+     *
+     * @param \TechDivision\ApplicationServer\Api\Node\NodeInterface $node The node instance
+     *
+     * @return array
+     */
+    public function prepareConnectionHandlers(NodeInterface $node)
+    {
+        $connectionHandlers = array();
+        foreach ($node->getConnectionHandlers() as $connectionHandler) {
+            $connectionHandlers[$connectionHandler->getUuid()] = $connectionHandler->getType();
+        }
+        return $connectionHandlers;
+    }
+
+    /**
+     * Prepares the handlers array based on a node implementing NodeInterface
+     *
+     * @param \TechDivision\ApplicationServer\Api\Node\NodeInterface $node The node instance
+     *
+     * @return array
+     */
+    public function prepareHandlers(NodeInterface $node)
+    {
+        $handlers = array();
+        foreach ($node->getFileHandlers() as $fileHandler) {
+            $handlers[$fileHandler->getExtension()] = $fileHandler->getName();
+        }
+        return $handlers;
+    }
+
+    /**
+     * Prepares the virtual hosts array based on a node implementing NodeInterface
+     *
+     * @param \TechDivision\ApplicationServer\Api\Node\NodeInterface $node The node instance
+     *
+     * @return array
+     */
+    public function prepareVirtualHosts(NodeInterface $node)
+    {
+        $virutalHosts = array();
+        // iterate config
+        foreach ($node->getVirtualHosts() as $virtualHost) {
+            $virtualHostNames = explode(' ', $virtualHost->getName());
+            foreach ($virtualHostNames as $virtualHostName) {
+                // set all virtual hosts params per key for faster matching later on
+                $virutalHosts[trim($virtualHostName)] = array(
+                    'params' => $virtualHost->getParamsAsArray(),
+                    'rewrites' => $this->prepareRewrites($virtualHost)
+                );
+            }
+        }
+        return $virutalHosts;
+    }
+
+    /**
+     * Prepares the rewrites array based on a node implementing NodeInterface
+     *
+     * @param \TechDivision\ApplicationServer\Api\Node\NodeInterface $node The node instance
+     *
+     * @return array
+     */
+    public function prepareRewrites(NodeInterface $node)
+    {
+        $rewrites = array();
         // prepare the array with the rewrite rules
-        foreach ($this->node->getRewrites() as $rewrite) {
-
+        foreach ($node->getRewrites() as $rewrite) {
             // Build up the array entry
-            $this->rewrites[] = array(
+            $rewrites[] = array(
                 'condition' => $rewrite->getCondition(),
                 'target' => $rewrite->getTarget(),
                 'flag' => $rewrite->getFlag()
             );
         }
-
-        // return the rewrites
-        return $this->rewrites;
+        return $rewrites;
     }
+
+    /**
+     * Prepares the environmentVariables array based on a node implementing NodeInterface
+     *
+     * @param \TechDivision\ApplicationServer\Api\Node\NodeInterface $node The node instance
+     *
+     * @return array
+     */
+    public function prepareEnvironmentVariables(NodeInterface $node)
+    {
+        $environmentVariables = array();
+        // prepare the array with the environment variables
+        foreach ($data->environmentVariables as $environmentVariable) {
+
+            // Build up the array entry
+            $environmentVariables[] = array(
+                'condition' => $environmentVariable->condition,
+                'definition' => $environmentVariable->definition
+            );
+        }
+        return $environmentVariables;
+    }
+
+    /**
+     * Prepares the authentications array based on a node implementing NodeInterface
+     *
+     * @param \TechDivision\ApplicationServer\Api\Node\NodeInterface $node The node instance
+     *
+     * @return array
+     */
+    public function prepareAuthentications(NodeInterface $node)
+    {
+        $authentications = array();
+        foreach ($node->getAuthentications() as $authentication) {
+            $authenticationUri = $authentication->getUri();
+            $authentications[$authenticationUri] = $authentication->getParamsAsArray();
+        }
+        return $authentications;
+    }
+
+    /**
+     * Prepares the access array based on a node implementing NodeInterface
+     *
+     * @param \TechDivision\ApplicationServer\Api\Node\NodeInterface $node The node instance
+     *
+     * @return array
+     */
+    public function prepareAccesses(NodeInterface $node)
+    {
+        $accesses = array();
+        foreach ($data->accesses as $access) {
+            $accessType = $access->type;
+            // get all params
+            $params = get_object_vars($access);
+            // remove type
+            unset($params["type"]);
+            // set all accesses information's
+            $accesses[$accessType][] = $params;
+        }
+        return $accesses;
+    }
+
 }
