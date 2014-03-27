@@ -4,6 +4,7 @@
     "homepage": "https://github.com/techdivision/TechDivision_WebContainer",
     "keywords": ["php", "web", "container", "appserver"],
     "license": ["OSL-3.0"],
+    "minimum-stability": "dev",
     "authors": [
         {
             "name": "Johann Zelger",
@@ -13,7 +14,12 @@
         }
     ],
     "require": {
-        "php": ">=5.4.0"
+        "php": ">=5.4.0",
+        "techdivision/appserver": "dev-master",
+        "techdivision/webserver": "dev-master",
+        "techdivision/servlet": "dev-master",
+        "techdivision/servletengine": "dev-master",
+        "techdivision/storage": "dev-master"
     },
     "autoload": {
         "psr-0": {"TechDivision": ["src/", "tests/"]}

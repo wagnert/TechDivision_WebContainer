@@ -83,7 +83,7 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
      *
      * @var array
      */
-    protected $rewrites;
+    protected $rewrites = array();
 
     /**
      * Hold's the accesses array
@@ -91,6 +91,13 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
      * @var array
      */
     protected $accesses;
+
+    /**
+     * Holds the environmentVariables array
+     *
+     * @var array
+     */
+    protected $environmentVariables = array();
 
     /**
      * Constructs config
@@ -250,8 +257,11 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     public function getConnectionHandlers()
     {
         if (!$this->connectionHandlers) {
-            $this->connectionHandlers = $this->prepareConnectionHandlers($this->node);
+            foreach ($this->node->getConnectionHandlers() as $connectionHandler) {
+                $this->connectionHandlers[$connectionHandler->getUuid()] = $connectionHandler->getType();
+            }
         }
+
         return $this->connectionHandlers;
     }
 
@@ -265,6 +275,7 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
         if (!$this->modules) {
             $this->modules = $this->prepareModules($this->node);
         }
+
         return $this->modules;
     }
 
@@ -472,6 +483,24 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
             );
         }
         return $environmentVariables;
+    }
+
+    /**
+     * Returns the environment variable configuration
+     *
+     * @return array
+     */
+    public function getEnvironmentVariables()
+    {
+        // init EnvironmentVariables
+        if (!$this->environmentVariables) {
+
+            // Get the nodes from our main node
+            $this->environmentVariables = $this->node->getEnvironmentVariablesAsArray();
+        }
+
+        // return the environmentVariables
+        return $this->environmentVariables;
     }
 
     /**
