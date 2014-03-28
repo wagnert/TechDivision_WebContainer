@@ -485,7 +485,7 @@ class ServerNodeConfiguration implements ServerConfigurationInterface
     {
         $environmentVariables = array();
         // Get the nodes from our main node
-        $environmentVariables = $this->node->getEnvironmentVariablesAsArray();
+        $environmentVariables = $node->getEnvironmentVariablesAsArray();
         return $environmentVariables;
     }
 
