@@ -21,6 +21,8 @@
 namespace TechDivision\WebContainer;
 
 use TechDivision\ApplicationServer\Interfaces\ContainerInterface;
+use TechDivision\WebServer\Dictionaries\EnvVars;
+use TechDivision\WebServer\Interfaces\ServerContextInterface;
 
 /**
  * Class Container
@@ -99,7 +101,6 @@ class Container extends \Stackable implements ContainerInterface
     public function run()
     {
         // define webservers base dir
-        // todo: refactor this in webserver repository
         define(
             'WEBSERVER_BASEDIR',
             $this->getInitialContext()->getSystemConfiguration()->getBaseDirectory()->getNodeValue()->__toString()
@@ -128,11 +129,14 @@ class Container extends \Stackable implements ContainerInterface
             $serverContextType = $serverConfig->getServerContextType();
 
             // create a new instance server context
+            /* @var \TechDivision\WebServer\Interfaces\ServerContextInterface $serverContext */
             $serverContext = new $serverContextType();
 
             // inject container to be available in specific mods etc. and initialize the module
             $serverContext->injectContainer($this);
             $serverContext->init($serverConfig);
+
+            $serverContext->injectLoggers($this->getInitialContext()->getLoggers());
 
             // init and start server
             $servers[] = new $serverType($serverContext);
