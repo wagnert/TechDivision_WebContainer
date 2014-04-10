@@ -21,6 +21,7 @@
 namespace TechDivision\WebContainer;
 
 use TechDivision\ApplicationServer\Interfaces\ContainerInterface;
+use TechDivision\ApplicationServer\ServerNodeConfiguration;
 use TechDivision\WebServer\Dictionaries\EnvVars;
 use TechDivision\WebServer\Interfaces\ServerContextInterface;
 
