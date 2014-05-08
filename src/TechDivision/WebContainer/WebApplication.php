@@ -57,10 +57,10 @@ class WebApplication extends AbstractApplication implements RequestContext
      * @var string
      */
     protected $appBase;
-    
+
     /**
      * The web containers base directory.
-     * 
+     *
      * @var string
      */
     protected $baseDirectory;
@@ -87,13 +87,6 @@ class WebApplication extends AbstractApplication implements RequestContext
     protected $vhosts = array();
 
     /**
-     * The datasources the app might use.
-     *
-     * @var array
-     */
-    protected $datasources = array();
-
-    /**
      * The host configuration.
      *
      * @var \TechDivision\ApplicationServer\Configuration
@@ -106,109 +99,97 @@ class WebApplication extends AbstractApplication implements RequestContext
      * @var \TechDivision\ApplicationServer\InitialContext
      */
     protected $initialContext;
-    
+
     /**
      * The session manager that is bound to the request.
-     * 
+     *
      * @var \TechDivision\ServletEngine\SessionManager
      */
     protected $sessionManager;
-    
+
     /**
      * The authentication manager that is bound to the request.
-     * 
+     *
      * @var \TechDivision\ServletEngine\AuthenticationManager
      */
     protected $authenticationManager;
-    
+
     /**
      * The servlet context that handles the servlets of this application.
-     * 
+     *
      * @var \TechDivision\Servlet\ServletContext
      */
     protected $servletContext;
-    
+
     /**
      * The resource locator used to locate the servlet that matches the actual request.
-     * 
+     *
      * @var \TechDivision\WebContainer\ResourceLocator
      */
     protected $resourceLocator;
-    
+
     /**
      * Initializes the application context.
-     * 
+     *
      * @return void
      */
     public function __construct()
     {
     }
-    
+
     /**
      * Returns a attribute from the application context.
-     * 
+     *
      * @param string $name the name of the attribute to return
-     * 
+     *
      * @return void
      */
     public function getAttribute($name)
     {
         throw new \Exception(__METHOD__ . ' not implemented yet');
     }
-    
+
     /**
      * The initial context instance.
-     * 
+     *
      * @param \TechDivision\ApplicationServer\InitialContext $initialContext The initial context instance
-     * 
+     *
      * @return void
      */
     public function injectInitialContext($initialContext)
     {
         $this->initialContext = $initialContext;
     }
-    
+
     /**
      * Injects the application name.
-     * 
+     *
      * @param string $name The application name
-     * 
+     *
      * @return void
      */
     public function injectName($name)
     {
         $this->name = $name;
     }
-    
-    /**
-     * Injects the datasources the app might use.
-     * 
-     * @param array $datasources The datasources the app might use
-     * 
-     * @return void
-     */
-    public function injectDatasources($datasources)
-    {
-        $this->datasources = $datasources;
-    }
-    
+
     /**
      * Injects the applications base directory.
-     * 
+     *
      * @param string $appBase The applications base directory
-     * 
+     *
      * @return void
      */
     public function injectAppBase($appBase)
     {
         $this->appBase = $appBase;
     }
-    
+
     /**
      * Injects the containers base directory.
-     * 
+     *
      * @param string $baseDirectory The web containers base directory
-     * 
+     *
      * @return void
      */
     public function injectBaseDirectory($baseDirectory)
@@ -227,36 +208,36 @@ class WebApplication extends AbstractApplication implements RequestContext
     {
         $this->servletContext = $servletContext;
     }
-    
+
     /**
      * Injects the resource locator that locates the requested servlet.
-     * 
+     *
      * @param \TechDivision\WebContainer\ResourceLocator $resourceLocator The resource locator
-     * 
+     *
      * @return void
      */
     public function injectResourceLocator(ResourceLocator $resourceLocator)
     {
         $this->resourceLocator = $resourceLocator;
     }
-    
+
     /**
      * Injects the session manager that is bound to the request.
-     * 
+     *
      * @param \TechDivision\ServletEngine\SessionManager $sessionManager The session manager to bound this request to
-     * 
+     *
      * @return void
      */
     public function injectSessionManager($sessionManager)
     {
         $this->sessionManager = $sessionManager;
     }
-    
+
     /**
      * Injects the authentication manager that is bound to the request.
-     * 
+     *
      * @param \TechDivision\ServletEngine\AuthenticationManager $authenticationManager The authentication manager to bound this request to
-     * 
+     *
      * @return void
      */
     public function injectAuthenticationManager($authenticationManager)
@@ -275,20 +256,20 @@ class WebApplication extends AbstractApplication implements RequestContext
     {
         $this->containerNode = $containerNode;
     }
-    
+
     /**
      * Returns the session manager instance associated with this request.
-     * 
+     *
      * @return \TechDivision\ServletEngine\SessionManager The session manager instance
      */
     public function getSessionManager()
     {
         return $this->sessionManager;
     }
-    
+
     /**
      * Returns the authentication manager instance associated with this request.
-     * 
+     *
      * @return \TechDivision\ServletEngine\AuthenticationManager The authentication manager instance
      */
     public function getAuthenticationManager()
@@ -444,16 +425,6 @@ class WebApplication extends AbstractApplication implements RequestContext
     }
 
     /**
-     * Returns the application's usable datasources.
-     *
-     * @return array The available datasources
-     */
-    public function getDatasources()
-    {
-        return $this->datasources;
-    }
-
-    /**
      * Checks if the application is a virtual host for the passed server name.
      *
      * @param string $serverName The server name to check the application being a virtual host of
@@ -462,16 +433,16 @@ class WebApplication extends AbstractApplication implements RequestContext
      */
     public function isVHostOf($serverName)
     {
-        
+
         // check if the application is a virtual host for the passed server name
         foreach ($this->getVHosts() as $virtualHost) {
-        
+
             // compare the virtual host name itself
             if (strcmp($virtualHost->getName(), $serverName) === 0) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -488,10 +459,9 @@ class WebApplication extends AbstractApplication implements RequestContext
         $appNode->setNodeName('application');
         $appNode->setName($this->getName());
         $appNode->setWebappPath($this->getWebappPath());
-        $appNode->setDatasources($this->getDatasources());
         $appNode->setParentUuid($this->getContainerNode()->getParentUuid());
         $appNode->setUuid($appNode->newUuid());
-        
+
         // set the AppNode in the instance itself
         $this->setAppNode($appNode);
 
@@ -509,7 +479,7 @@ class WebApplication extends AbstractApplication implements RequestContext
     {
 
         try {
-            
+
             // initialize the class loader with the additional folders
             set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath());
             set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'classes');
@@ -517,7 +487,7 @@ class WebApplication extends AbstractApplication implements RequestContext
 
             // load and initialize the servlets
             $this->getServletContext()->initialize();
-            
+
         } catch (InvalidApplicationArchiveException $iaae) {
             // do nothing here, we simple doesn't have a web application
         }
@@ -525,12 +495,12 @@ class WebApplication extends AbstractApplication implements RequestContext
         // return the instance itself
         return $this;
     }
-    
+
     /**
      * Bounds the application to the passed virtual host.
-     * 
+     *
      * @param \TechDivision\WebContainer\VirtualHost $virtualHost The virtual host to add
-     * 
+     *
      * @return void
      */
     public function addVirtualHost(VirtualHost $virtualHost)
@@ -541,7 +511,7 @@ class WebApplication extends AbstractApplication implements RequestContext
     /**
      * Locates and returns the servlet instance that handles
      * the request passed as parameter.
-     * 
+     *
      * @param \TechDivision\Servlet\Http\HttpServletRequest $servletRequest The request instance
      *
      * @return \TechDivision\Servlet\Servlet The servlet instance to handle the request
