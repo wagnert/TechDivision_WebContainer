@@ -29,6 +29,9 @@ use TechDivision\ApplicationServer\AbstractApplication;
 use TechDivision\ApplicationServer\Api\ContainerService;
 use TechDivision\ApplicationServer\Api\Node\AppNode;
 use TechDivision\ApplicationServer\Api\Node\NodeInterface;
+use TechDivision\WebSocketServer\HandlerManager;
+use TechDivision\WebSocketServer\ResourceLocatorInterface;
+use TechDivision\WebSocketProtocol\Request;
 
 /**
  * The application instance holds all information about the deployed application
@@ -129,6 +132,20 @@ class WebApplication extends AbstractApplication implements RequestContext
     protected $resourceLocator;
 
     /**
+     * The handler manager that handles the handlers of this application.
+     *
+     * @var \TechDivision\WebSocketServer\HandlerManager
+     */
+    protected $handlerManager;
+
+    /**
+     * The resource locator used to locate the servlet that matches the actual request.
+     *
+     * @var \TechDivision\WebSocketCServer\HandlerLocator
+     */
+    protected $handlerLocator;
+
+    /**
      * Initializes the application context.
      *
      * @return void
@@ -219,6 +236,30 @@ class WebApplication extends AbstractApplication implements RequestContext
     public function injectResourceLocator(ResourceLocator $resourceLocator)
     {
         $this->resourceLocator = $resourceLocator;
+    }
+
+    /**
+     * Injects the applications handler manager instance.
+     *
+     * @param \TechDivision\WebSocketServer\HandlerManager $handlerManager The handler manager instance
+     *
+     * @return void
+     */
+    public function injectHandlerManager(HandlerManager $handlerManager)
+    {
+        $this->handlerManager = $handlerManager;
+    }
+
+    /**
+     * Injects the handler locator that locates the requested handler.
+     *
+     * @param \TechDivision\WebSocketServer\ResourceLocatorInterface $handlerLocator The handler locator
+     *
+     * @return void
+     */
+    public function injectHandlerLocator(ResourceLocatorInterface $handlerLocator)
+    {
+        $this->handlerLocator = $handlerLocator;
     }
 
     /**
@@ -337,6 +378,26 @@ class WebApplication extends AbstractApplication implements RequestContext
     public function getResourceLocator()
     {
         return $this->resourceLocator;
+    }
+
+    /**
+     * Return the handler manager instance.
+     *
+     * @return \TechDivision\WebSocketServer\HandlerManager The handler manager instance
+     */
+    public function getHandlerManager()
+    {
+        return $this->handlerManager;
+    }
+
+    /**
+     * Return the handler locator instance.
+     *
+     * @return \TechDivision\WebSocketServer\ResourceLocatorInterface The handler locator instance
+     */
+    public function getHandlerLocator()
+    {
+        return $this->handlerLocator;
     }
 
     /**
@@ -478,18 +539,17 @@ class WebApplication extends AbstractApplication implements RequestContext
     public function connect()
     {
 
-        try {
+        // initialize the class loader with the additional folders
+        set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath());
+        set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'classes');
+        set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'lib');
 
-            // initialize the class loader with the additional folders
-            set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath());
-            set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'classes');
-            set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'lib');
-
-            // load and initialize the servlets
+        // load and initialize the servlets
+        if ($this->getServletContext()) {
             $this->getServletContext()->initialize();
-
-        } catch (InvalidApplicationArchiveException $iaae) {
-            // do nothing here, we simple doesn't have a web application
+        }
+        if ($this->getHandlerManager()) {
+            $this->getHandlerManager()->initialize();
         }
 
         // return the instance itself
@@ -519,5 +579,18 @@ class WebApplication extends AbstractApplication implements RequestContext
     public function locate(HttpServletRequest $servletRequest)
     {
         return $this->getResourceLocator()->locate($this->getServletContext(), $servletRequest);
+    }
+
+    /**
+     * Tries to locate the handler that handles the request and returns the instance if one can be found.
+     *
+     * @param \TechDivision\WebSocketProtocol\Request $request The request instance
+     *
+     * @return \Ratchet\MessageComponentInterface The handler that maps the request instance
+     * @see \TechDivision\WebSocketServer\Service\Locator\ResourceLocatorInterface::locate()
+     */
+    public function locateHandler(Request $request)
+    {
+        return $this->getHandlerLocator()->locate($this->getHandlerManager(), $request);
     }
 }
