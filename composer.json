@@ -19,7 +19,8 @@
         "techdivision/webserver": "dev-master",
         "techdivision/servlet": "dev-master",
         "techdivision/servletengine": "dev-master",
-        "techdivision/storage": "dev-master"
+        "techdivision/storage": "dev-master",
+        "techdivision/websocketserver": "dev-master"
     },
     "autoload": {
         "psr-0": {"TechDivision": ["src/", "tests/"]}
