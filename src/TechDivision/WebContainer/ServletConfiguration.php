@@ -37,24 +37,24 @@ use TechDivision\Servlet\ServletConfig;
  */
 class ServletConfiguration implements ServletConfig
 {
-    
+
     /**
      * The servlets name from the web.xml configuration file.
-     * 
+     *
      * @var string
      */
     protected $servletName;
 
     /**
      * The application instance.
-     * 
+     *
      * @var \TechDivision\Servlet\ServletContext
      */
     protected $servletContext;
-    
+
     /**
      * Array with the servlet's init parameters found in the web.xml configuration file.
-     * 
+     *
      * @var array
      */
     protected $initParameter = array();
@@ -63,17 +63,17 @@ class ServletConfiguration implements ServletConfig
      * Initializes the servlet configuration with the servlet context instance.
      *
      * @param \TechDivision\Servlet\ServletContext $servletContext The servlet context instance
-     * 
+     *
      * @return void
      */
     public function injectServletContext($servletContext)
     {
         $this->servletContext = $servletContext;
     }
-    
+
     /**
      * Set's the servlet's Uname from the web.xml configuration file.
-     * 
+     *
      * @param string $servletName The servlet name
      *
      * @return void
@@ -92,10 +92,10 @@ class ServletConfiguration implements ServletConfig
     {
         return $this->servletContext;
     }
-    
+
     /**
      * Return's the servlet's name from the web.xml configuration file.
-     * 
+     *
      * @return string The servlet name
      * @see \TechDivision\Servlet\ServletConfig::getServletName()
      */
@@ -123,10 +123,10 @@ class ServletConfiguration implements ServletConfig
     {
         return $this->getServletContext()->getWebappPath();
     }
-    
+
     /**
      * Register's the init parameter under the passed name.
-     * 
+     *
      * @param string $name  Name to register the init parameter with
      * @param string $value The value of the init parameter
      *
@@ -136,10 +136,10 @@ class ServletConfiguration implements ServletConfig
     {
         $this->initParameter[$name] = $value;
     }
-    
+
     /**
      * Return's the init parameter with the passed name.
-     * 
+     *
      * @param string $name Name of the init parameter to return
      *
      * @return string

@@ -147,8 +147,6 @@ class WebApplication extends AbstractApplication implements RequestContext
 
     /**
      * Initializes the application context.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -159,6 +157,7 @@ class WebApplication extends AbstractApplication implements RequestContext
      *
      * @param string $name the name of the attribute to return
      *
+     * @throws \Exception
      * @return void
      */
     public function getAttribute($name)
