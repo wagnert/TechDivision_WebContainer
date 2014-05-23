@@ -23,7 +23,7 @@ namespace TechDivision\WebContainer;
 use TechDivision\ApplicationServer\Interfaces\ApplicationInterface;
 
 /**
- * A basic virtual host class containing virtual host meta information like 
+ * A basic virtual host class containing virtual host meta information like
  * domain name and base directory.
  *
  * @category  Appserver
@@ -55,8 +55,6 @@ class VirtualHost
      *
      * @param string $name    The vhost's domain name
      * @param string $appBase The vhost's base directory
-     * 
-     * @return void
      */
     public function __construct($name, $appBase)
     {
@@ -83,12 +81,12 @@ class VirtualHost
     {
         return $this->appBase;
     }
-    
+
     /**
      * Returns TRUE if the application matches this virtual host configuration.
-     * 
+     *
      * @param \TechDivision\ApplicationServer\Interfaces\ApplicationInterface $application The application to match
-     * 
+     *
      * @return boolean TRUE if the application matches this virtual host, else FALSE
      */
     public function match(ApplicationInterface $application)
