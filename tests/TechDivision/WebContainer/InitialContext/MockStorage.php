@@ -13,7 +13,7 @@
  * @author    Bernhard Wick <b.wick@techdivision.com>
  * @copyright 2014 TechDivision GmbH <info@techdivision.com>
  * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
- * @link      https://github.com/techdivision/TechDivision_WebServer
+ * @link      https://github.com/techdivision/TechDivision_WebContainer
  */
 
 namespace TechDivision\WebContainer\InitialContext;
@@ -26,7 +26,7 @@ namespace TechDivision\WebContainer\InitialContext;
  * @author    Bernhard Wick <b.wick@techdivision.com>
  * @copyright 2014 TechDivision GmbH <info@techdivision.com>
  * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
- * @link      https://github.com/techdivision/TechDivision_WebServer
+ * @link      https://github.com/techdivision/TechDivision_WebContainer
  *
  * TODO there currently is no possibility for internal subrequests
  */
