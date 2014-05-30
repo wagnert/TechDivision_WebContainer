@@ -143,14 +143,11 @@ class WebContainerDeployment extends AbstractDeployment
     protected function getSessionManager()
     {
 
-        // initialize the session settings + storage
-        $storage = new StackableStorage();
-        $storage->injectStorage($this->getInitialContext()->getStorage()->getStorage());
-
         // initialize the session manager
         $manager = new StandardSessionManager();
         $manager->injectSettings(new DefaultSessionSettings());
-        $manager->injectStorage($storage);
+        $manager->injectSessions(new StackableStorage());
+        $manager->injectStorage(new StackableStorage());
 
         // return the initialized session manager instance
         return $manager;
