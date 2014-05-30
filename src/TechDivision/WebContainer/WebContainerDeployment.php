@@ -147,7 +147,6 @@ class WebContainerDeployment extends AbstractDeployment
         $manager = new StandardSessionManager();
         $manager->injectSettings(new DefaultSessionSettings());
         $manager->injectSessions(new StackableStorage());
-        $manager->injectStorage(new StackableStorage());
 
         // return the initialized session manager instance
         return $manager;
