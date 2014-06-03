@@ -24,6 +24,7 @@ namespace TechDivision\WebContainer;
 use TechDivision\Storage\StackableStorage;
 use TechDivision\ApplicationServer\AbstractDeployment;
 use TechDivision\ServletEngine\DefaultSessionSettings;
+use TechDivision\ServletEngine\PersistentSessionManager;
 use TechDivision\ServletEngine\StandardSessionManager;
 use TechDivision\ServletEngine\Authentication\StandardAuthenticationManager;
 use TechDivision\WebSocketServer\HandlerManager;
@@ -52,7 +53,6 @@ class WebContainerDeployment extends AbstractDeployment
 
         // create authentication and session manager instance
         $authenticationManager = $this->getAuthenticationManager();
-        $sessionManager = $this->getSessionManager();
 
         // gather all the deployed web applications
         foreach (new \FilesystemIterator($this->getWebappPath()) as $folder) {
@@ -62,8 +62,8 @@ class WebContainerDeployment extends AbstractDeployment
 
                 // initialize the application instance
                 $application = new WebApplication();
-                $application->injectSessionManager($sessionManager);
                 $application->injectAuthenticationManager($authenticationManager);
+                $application->injectSessionManager($this->getSessionManager());
                 $application->injectInitialContext($this->getInitialContext());
                 $application->injectContainerNode($this->getContainerNode());
                 $application->injectName($folder->getBasename());
@@ -143,10 +143,16 @@ class WebContainerDeployment extends AbstractDeployment
     protected function getSessionManager()
     {
 
-        // initialize the session manager
+        // load the app service
+        $appService = $this->newService('TechDivision\ApplicationServer\Api\AppService');
+
+        // initialize the default session settings
+        $defaultSettings = new DefaultSessionSettings();
+        $defaultSettings->setSessionSavePath($appService->getTmpDir());
+
+        // create the session manager and inject necessary objects
         $manager = new StandardSessionManager();
-        $manager->injectSettings(new DefaultSessionSettings());
-        $manager->injectSessions(new StackableStorage());
+        $manager->injectSettings($defaultSettings);
 
         // return the initialized session manager instance
         return $manager;

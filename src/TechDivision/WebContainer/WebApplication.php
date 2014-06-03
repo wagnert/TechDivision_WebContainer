@@ -551,6 +551,10 @@ class WebApplication extends AbstractApplication implements RequestContext
             $this->getHandlerManager()->initialize();
         }
 
+        if ($this->getSessionManager()) {
+            $this->getSessionManager()->initialize();
+        }
+
         // return the instance itself
         return $this;
     }
