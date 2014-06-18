@@ -58,11 +58,11 @@ class ServletManager implements ServletContext
     protected $servletMappings = array();
 
     /**
-     * Array with the servlets init parameters found in the web.xml configuration file.
+     * Array with the context init parameters found in the web.xml configuration file.
      *
      * @var array
      */
-    protected $initParameter = array();
+    protected $initParameters = array();
 
     /**
      * Teh web applications security context.
@@ -77,6 +77,13 @@ class ServletManager implements ServletContext
      * @var string
      */
     protected $webappPath;
+
+    /**
+     * Array with the context session parameters found in the web.xml configuration file.
+     *
+     * @var array
+     */
+    protected $sessionParameters = array();
 
     /**
      * Injects the absolute path to the web application.
@@ -136,6 +143,13 @@ class ServletManager implements ServletContext
                 $this->addInitParameter((string) $contextParam->{'param-name'}, (string) $contextParam->{'param-value'});
             }
 
+            // initialize the session configuration by parsing the session-config childs
+            foreach ($config->xpath('/web-app/session-config') as $sessionConfig) {
+                foreach ($sessionConfig as $key => $value) {
+                    $this->addSessionParameter(str_replace(' ', '', ucwords(str_replace('-', ' ', (string) $key))), (string) $value);
+                }
+            }
+
             // initialize the servlets by parsing the servlet-mapping nodes
             foreach ($config->xpath('/web-app/servlet') as $servlet) {
 
@@ -147,7 +161,7 @@ class ServletManager implements ServletContext
 
                 // try to resolve the mapped servlet class
                 $className = (string) $servlet->{'servlet-class'};
-                if (! count($className)) {
+                if (!count($className)) {
                     throw new InvalidApplicationArchiveException(
                         sprintf('No servlet class defined for servlet %s', $servlet->{'servlet-class'})
                     );
@@ -302,7 +316,7 @@ class ServletManager implements ServletContext
     }
 
     /**
-     * Register's the init parameter under the passed name.
+     * Registers the init parameter under the passed name.
      *
      * @param string $name  Name to register the init parameter with
      * @param string $value The value of the init parameter
@@ -311,11 +325,11 @@ class ServletManager implements ServletContext
      */
     public function addInitParameter($name, $value)
     {
-        $this->initParameter[$name] = $value;
+        $this->initParameters[$name] = $value;
     }
 
     /**
-     * Return's the init parameter with the passed name.
+     * Returns the init parameter with the passed name.
      *
      * @param string $name Name of the init parameter to return
      *
@@ -323,8 +337,8 @@ class ServletManager implements ServletContext
      */
     public function getInitParameter($name)
     {
-        if (array_key_exists($name, $this->initParameter)) {
-            return $this->initParameter[$name];
+        if (array_key_exists($name, $this->initParameters)) {
+            return $this->initParameters[$name];
         }
     }
 
@@ -336,5 +350,42 @@ class ServletManager implements ServletContext
     public function getSecuredUrlConfigs()
     {
         return $this->securedUrlConfigs;
+    }
+
+    /**
+     * Registers the session parameter under the passed name.
+     *
+     * @param string $name  Name to register the session parameter with
+     * @param string $value The value of the session parameter
+     *
+     * @return void
+     */
+    public function addSessionParameter($name, $value)
+    {
+        $this->sessionParameters[$name] = $value;
+    }
+
+    /**
+     * Returns the session parameter with the passed name.
+     *
+     * @param string $name Name of the session parameter to return
+     *
+     * @return null|string
+     */
+    public function getSessionParameter($name)
+    {
+        if (array_key_exists($name, $this->sessionParameters)) {
+            return $this->sessionParameters[$name];
+        }
+    }
+
+    /**
+     * Returns TRUE if we've at least one session parameter configured, else FALSE.
+     *
+     * @return boolean TRUE if we've at least one session parametr configured, else FALSE
+     */
+    public function hasSessionParameters()
+    {
+        return sizeof($this->sessionParameters) > 0;
     }
 }
