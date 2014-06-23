@@ -150,12 +150,8 @@ class WebContainerDeployment extends AbstractDeployment
         $defaultSettings = new DefaultSessionSettings();
         $defaultSettings->setSessionSavePath($appService->getTmpDir());
 
-        // create the session manager and inject necessary objects
-        $manager = new StandardSessionManager();
-        $manager->injectSettings($defaultSettings);
-
-        // return the initialized session manager instance
-        return $manager;
+        // create and return the session manager and inject necessary objects
+        return new StandardSessionManager($defaultSettings);
     }
 
     /**
