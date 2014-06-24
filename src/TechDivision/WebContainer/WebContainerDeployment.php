@@ -23,12 +23,16 @@ namespace TechDivision\WebContainer;
 
 use TechDivision\Storage\StackableStorage;
 use TechDivision\ApplicationServer\AbstractDeployment;
+use TechDivision\WebSocketServer\HandlerManager;
+use TechDivision\WebSocketServer\HandlerLocator;
 use TechDivision\ServletEngine\DefaultSessionSettings;
 use TechDivision\ServletEngine\PersistentSessionManager;
 use TechDivision\ServletEngine\StandardSessionManager;
 use TechDivision\ServletEngine\Authentication\StandardAuthenticationManager;
-use TechDivision\WebSocketServer\HandlerManager;
-use TechDivision\WebSocketServer\HandlerLocator;
+use Techdivision\ServletEngine\StandardSessionMarshaller;
+use Techdivision\ServletEngine\SessionFactory;
+use Techdivision\ServletEngine\FilesystemPersistenceManager;
+use Techdivision\ServletEngine\StandardGarbageCollector;
 
 /**
  * Specific deployment implementation for web applications.
@@ -143,15 +147,49 @@ class WebContainerDeployment extends AbstractDeployment
     protected function getSessionManager()
     {
 
-        // load the app service
-        $appService = $this->newService('TechDivision\ApplicationServer\Api\AppService');
+        // load the system configuration
+        $systemConfiguration = $this->getInitialContext()->getSystemConfiguration();
 
-        // initialize the default session settings
-        $defaultSettings = new DefaultSessionSettings();
-        $defaultSettings->setSessionSavePath($appService->getTmpDir());
+        // initialize the session pool
+        $sessions = new StackableStorage();
+        $checksums = new StackableStorage();
+        $sessionPool = new StackableStorage();
+        $sessionSettings = new DefaultSessionSettings();
+        $sessionMarshaller = new StandardSessionMarshaller();
 
-        // create and return the session manager and inject necessary objects
-        return new StandardSessionManager($defaultSettings);
+        // we need a session factory instance
+        $sessionFactory = new SessionFactory($sessionPool);
+        $sessionFactory->start();
+
+        // we need a persistence manager and garbage collector
+        $persistenceManager = new FilesystemPersistenceManager();
+        $persistenceManager->injectSessions($sessions);
+        $persistenceManager->injectChecksums($checksums);
+        $persistenceManager->injectSessionSettings($sessionSettings);
+        $persistenceManager->injectSessionMarshaller($sessionMarshaller);
+        $persistenceManager->injectSessionFactory($sessionFactory);
+        $persistenceManager->injectUser($systemConfiguration->getParam('user'));
+        $persistenceManager->injectGroup($systemConfiguration->getParam('group'));
+        $persistenceManager->injectUmask($systemConfiguration->getParam('umask'));
+
+        $persistenceManager->start();
+
+        // we need a garbage collector
+        $garbageCollector = new StandardGarbageCollector();
+        $garbageCollector->injectSessions($sessions);
+        $garbageCollector->injectSessionSettings($sessionSettings);
+        $garbageCollector->start();
+
+        // and finally we need the session manager instance
+        $sessionManager = new StandardSessionManager();
+        $sessionManager->injectSessions($sessions);
+        $sessionManager->injectSessionSettings($sessionSettings);
+        $sessionManager->injectSessionFactory($sessionFactory);
+        $sessionManager->injectPersistenceManager($persistenceManager);
+        $sessionManager->injectGarbageCollector($garbageCollector);
+
+        // return the session manager instance
+        return $sessionManager;
     }
 
     /**

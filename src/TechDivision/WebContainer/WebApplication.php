@@ -544,11 +544,34 @@ class WebApplication extends AbstractApplication implements RequestContext
         set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'lib');
 
         // load and initialize the servlets
-        if ($this->getServletContext()) {
-            $this->getServletContext()->initialize();
+        if ($servletContext = $this->getServletContext()) {
+            $servletContext->initialize();
         }
-        if ($this->getHandlerManager()) {
-            $this->getHandlerManager()->initialize();
+
+        // load and initialize the handlers
+        if ($handlerManager = $this->getHandlerManager()) {
+            $handlerManager->initialize();
+        }
+
+        // load and initialize the session manager
+        if ($sessionManager = $this->getSessionManager()) {
+
+            // prepare the default session save path
+            $sessionSavePath = $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'sessions';
+
+            // load the settings, set the default session save path
+            $sessionSettings = $sessionManager->getSessionSettings();
+            $sessionSettings->setSessionSavePath($sessionSavePath);
+
+            // if we've session parameters defined in our servlet context
+            if ($servletContext && $servletContext->hasSessionParameters()) {
+
+                // we want to merge the session settings from the servlet context into our session manager
+                $sessionSettings->mergeServletContext($servletContext);
+            }
+
+            // initialize the session manager
+            $sessionManager->initialize();
         }
 
         // return the instance itself
