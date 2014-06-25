@@ -61,8 +61,11 @@ class WebContainerDeployment extends AbstractDeployment
         // gather all the deployed web applications
         foreach (new \FilesystemIterator($this->getWebappPath()) as $folder) {
 
+            // check if a deployment descriptor is available
+            $deploymentDescriptor = new \SplFileInfo($folder . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'web.xml');
+
             // check if file or subdirectory has been found
-            if ($folder->isDir() === true) {
+            if ($folder->isDir() === true && $deploymentDescriptor->isFile()) {
 
                 // initialize the application instance
                 $application = new WebApplication();
