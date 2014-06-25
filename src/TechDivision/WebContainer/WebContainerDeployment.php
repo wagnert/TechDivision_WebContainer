@@ -171,7 +171,6 @@ class WebContainerDeployment extends AbstractDeployment
         $persistenceManager->injectUser($systemConfiguration->getParam('user'));
         $persistenceManager->injectGroup($systemConfiguration->getParam('group'));
         $persistenceManager->injectUmask($systemConfiguration->getParam('umask'));
-
         $persistenceManager->start();
 
         // we need a garbage collector
