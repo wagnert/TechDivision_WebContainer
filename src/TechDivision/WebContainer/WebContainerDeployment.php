@@ -29,10 +29,10 @@ use TechDivision\ServletEngine\DefaultSessionSettings;
 use TechDivision\ServletEngine\PersistentSessionManager;
 use TechDivision\ServletEngine\StandardSessionManager;
 use TechDivision\ServletEngine\Authentication\StandardAuthenticationManager;
-use Techdivision\ServletEngine\StandardSessionMarshaller;
-use Techdivision\ServletEngine\SessionFactory;
-use Techdivision\ServletEngine\FilesystemPersistenceManager;
-use Techdivision\ServletEngine\StandardGarbageCollector;
+use TechDivision\ServletEngine\StandardSessionMarshaller;
+use TechDivision\ServletEngine\SessionFactory;
+use TechDivision\ServletEngine\FilesystemPersistenceManager;
+use TechDivision\ServletEngine\StandardGarbageCollector;
 
 /**
  * Specific deployment implementation for web applications.
