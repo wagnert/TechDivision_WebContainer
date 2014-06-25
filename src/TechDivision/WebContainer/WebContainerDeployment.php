@@ -64,8 +64,8 @@ class WebContainerDeployment extends AbstractDeployment
             // check if a deployment descriptor is available
             $deploymentDescriptor = new \SplFileInfo($folder . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'web.xml');
 
-            // check if file or subdirectory has been found
-            if ($folder->isDir() === true && $deploymentDescriptor->isFile()) {
+            // check if file or subdirectory has been found and a deployment descriptor is available
+            if ($folder->isDir() === true && $deploymentDescriptor->isFile() === true) {
 
                 // initialize the application instance
                 $application = new WebApplication();
