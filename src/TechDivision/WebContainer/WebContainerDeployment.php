@@ -76,9 +76,7 @@ class WebContainerDeployment extends AbstractDeployment
                 $application->injectName($folder->getBasename());
                 $application->injectAppBase($this->getAppBase());
                 $application->injectBaseDirectory($this->getBaseDirectory());
-                $application->injectResourceLocator($this->getResourceLocator());
                 $application->injectServletContext($this->getServletContext($folder));
-                $application->injectHandlerLocator($this->getHandlerLocator());
                 $application->injectHandlerManager($this->getHandlerManager($folder));
 
                 // add the application to the available applications
@@ -102,6 +100,7 @@ class WebContainerDeployment extends AbstractDeployment
     {
         $servletContext = new ServletManager();
         $servletContext->injectWebappPath($folder->getPathname());
+        $servletContext->injectResourceLocator($this->getResourceLocator());
         return $servletContext;
     }
 
@@ -128,6 +127,7 @@ class WebContainerDeployment extends AbstractDeployment
     {
         $handlerManager = new HandlerManager();
         $handlerManager->injectWebappPath($folder->getPathname());
+        $handlerManager->injectHandlerLocator($this->getHandlerLocator());
         return $handlerManager;
     }
 
