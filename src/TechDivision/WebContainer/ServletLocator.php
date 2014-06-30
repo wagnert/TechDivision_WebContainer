@@ -54,7 +54,7 @@ class ServletLocator implements ResourceLocator
     {
         
         // load the path to the (almost virtual servlet)
-        $servletPath = $servletRequest->getServletPath();
+        $servletPath = $servletRequest->getServletPath() . $servletRequest->getPathInfo();
         
         // iterate over all servlets and return the matching one
         foreach ($servletContext->getServletMappings() as $urlPattern => $servletName) {
