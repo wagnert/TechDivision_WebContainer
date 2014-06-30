@@ -23,6 +23,7 @@
 
 namespace TechDivision\WebContainer;
 
+use TechDivision\Storage\StackableStorage;
 use TechDivision\Servlet\Servlet;
 use TechDivision\Servlet\ServletContext;
 use TechDivision\Servlet\Http\HttpServletRequest;
@@ -41,57 +42,20 @@ use TechDivision\WebContainer\InvalidServletMappingException;
  * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  * @link      http://www.appserver.io
  */
-class ServletManager implements ServletContext
+class ServletManager extends \Stackable implements ServletContext
 {
 
-    /**
-     * The servlets.
-     *
-     * @var array
-     */
-    protected $servlets = array();
 
-    /**
-     * Array that contains the servlet mappings.
-     *
-     * @var array
-     */
-    protected $servletMappings = array();
-
-    /**
-     * Array with the context init parameters found in the web.xml configuration file.
-     *
-     * @var array
-     */
-    protected $initParameters = array();
-
-    /**
-     * Teh web applications security context.
-     *
-     * @var array
-     */
-    protected $securedUrlConfigs = array();
-
-    /**
-     * The absolute path to the web application.
-     *
-     * @var string
-     */
-    protected $webappPath;
-
-    /**
-     * The resource locator used to locate the servlet that matches the actual request.
-     *
-     * @var \TechDivision\WebContainer\ResourceLocator
-     */
-    protected $resourceLocator;
-
-    /**
-     * Array with the context session parameters found in the web.xml configuration file.
-     *
-     * @var array
-     */
-    protected $sessionParameters = array();
+    public function __construct()
+    {
+        $this->servlets = new StackableStorage();
+        $this->servletMappings = new StackableStorage();
+        $this->initParameters = new StackableStorage();
+        $this->securedUrlConfigs = new StackableStorage();
+        $this->sessionParameters = new StackableStorage();
+        $this->webappPath;
+        $this->resourceLocator;
+    }
 
     /**
      * Injects the absolute path to the web application.
@@ -153,9 +117,9 @@ class ServletManager implements ServletContext
                 // prepare the URL config in JSON format
                 $securedUrlConfig = json_decode(json_encode($securityParam), 1);
                 // add the web app path to the security config (to resolve relative filenames)
-                $securedUrlConfig['webapp-path'] = $this->getWebappPath();
+                $securedUrlConfig['webapp-path'] = $folder;
                 // add the configuration to the array
-                $this->securedUrlConfigs[] = $securedUrlConfig;
+                $this->securedUrlConfigs->set($folder, $securedUrlConfig);
             }
 
             // initialize the context by parsing the context-param nodes
@@ -283,8 +247,8 @@ class ServletManager implements ServletContext
      */
     public function getServlet($key)
     {
-        if (array_key_exists($key, $this->servlets)) {
-            return $this->servlets[$key];
+        if ($this->servlets->has($key)) {
+            return $this->servlets->get($key);
         }
     }
 
@@ -297,8 +261,8 @@ class ServletManager implements ServletContext
      */
     public function getServletByMapping($urlMapping)
     {
-        if (array_key_exists($urlMapping, $this->servletMappings)) {
-            return $this->getServlet($this->servletMappings[$urlMapping]);
+        if ($this->servletMappings->has($urlMapping)) {
+            return $this->getServlet($this->servletMappings->get($urlMapping));
         }
     }
 
@@ -312,7 +276,7 @@ class ServletManager implements ServletContext
      */
     public function addServlet($key, Servlet $servlet)
     {
-        $this->servlets[$key] = $servlet;
+        $this->servlets->set($key, $servlet);
     }
 
     /**
@@ -355,7 +319,7 @@ class ServletManager implements ServletContext
      */
     public function addInitParameter($name, $value)
     {
-        $this->initParameters[$name] = $value;
+        $this->initParameters->set($name, $value);
     }
 
     /**
@@ -367,8 +331,8 @@ class ServletManager implements ServletContext
      */
     public function getInitParameter($name)
     {
-        if (array_key_exists($name, $this->initParameters)) {
-            return $this->initParameters[$name];
+        if ($this->initParameters->has($name)) {
+            return $this->initParameters->get($name);
         }
     }
 
@@ -392,7 +356,7 @@ class ServletManager implements ServletContext
      */
     public function addSessionParameter($name, $value)
     {
-        $this->sessionParameters[$name] = $value;
+        $this->sessionParameters->set($name, $value);
     }
 
     /**
@@ -404,8 +368,8 @@ class ServletManager implements ServletContext
      */
     public function getSessionParameter($name)
     {
-        if (array_key_exists($name, $this->sessionParameters)) {
-            return $this->sessionParameters[$name];
+        if ($this->sessionParameters->has($name)) {
+            return $this->sessionParameters->get($name);
         }
     }
 

@@ -21,11 +21,14 @@
 
 namespace TechDivision\WebContainer;
 
+use TechDivision\Storage\StackableStorage;
 use TechDivision\Servlet\Servlet;
 use TechDivision\Servlet\ServletContext;
 use TechDivision\Servlet\Http\HttpServletRequest;
 use TechDivision\ServletEngine\Http\RequestContext;
-use TechDivision\ApplicationServer\AbstractApplication;
+use TechDivision\PBC\AutoLoader;
+use TechDivision\PBC\Config;
+use TechDivision\ApplicationServer\Interfaces\ApplicationInterface;
 use TechDivision\ApplicationServer\Api\ContainerService;
 use TechDivision\ApplicationServer\Api\Node\AppNode;
 use TechDivision\ApplicationServer\Api\Node\NodeInterface;
@@ -44,7 +47,7 @@ use TechDivision\WebSocketProtocol\Request;
  * @license   http://opensource.org/licenses/osl-3.0.php Open Software License (OSL 3.0)
  * @link      http://www.appserver.io
  */
-class WebApplication extends AbstractApplication implements RequestContext
+class WebApplication extends \Thread implements ApplicationInterface, RequestContext
 {
 
     /**
@@ -87,7 +90,7 @@ class WebApplication extends AbstractApplication implements RequestContext
      *
      * @var array
      */
-    protected $vhosts = array();
+    protected $vhosts;
 
     /**
      * The host configuration.
@@ -136,6 +139,7 @@ class WebApplication extends AbstractApplication implements RequestContext
      */
     public function __construct()
     {
+        $this->vhosts = new StackableStorage();
     }
 
     /**
@@ -436,6 +440,8 @@ class WebApplication extends AbstractApplication implements RequestContext
     public function isVHostOf($serverName)
     {
 
+        return false;
+
         // check if the application is a virtual host for the passed server name
         foreach ($this->getVHosts() as $virtualHost) {
 
@@ -472,6 +478,18 @@ class WebApplication extends AbstractApplication implements RequestContext
     }
 
     /**
+     * Bounds the application to the passed virtual host.
+     *
+     * @param \TechDivision\WebContainer\VirtualHost $virtualHost The virtual host to add
+     *
+     * @return void
+     */
+    protected function addVirtualHost(VirtualHost $virtualHost)
+    {
+        $this->vhosts[] = $virtualHost;
+    }
+
+    /**
      * Has been automatically invoked by the container after the application
      * instance has been created.
      *
@@ -479,56 +497,95 @@ class WebApplication extends AbstractApplication implements RequestContext
      */
     public function connect()
     {
+        // start the application instance
+        $this->start();
+
+        // return the instance itself
+        return $this;
+    }
+
+    public function run()
+    {
 
         // initialize the class loader with the additional folders
         set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath());
         set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'classes');
         set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'lib');
 
+        // register the class loader again, because in a Thread the context has been lost maybe
+        $this->getInitialContext()->getClassLoader()->register(true);
+
+        /**
+         * @TODO Refactor PBC!
+         *
+         * $config Config::getInstance();
+         * $config->setXXX();
+         *
+         * $classLoader = new AutoLoader($config);
+         *
+         * $autoLoaderConfig = $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'pbc.conf.json';
+         * if (file_exists($autoLoaderConfig)) {
+         *     Config::getInstance()->load($autoLoaderConfig);
+         *     $classLoader = new AutoLoader();
+         *     $classLoader->register();
+         * }
+         */
+
         // load and initialize the servlets
-        if ($servletContext = $this->getServletContext()) {
-            $servletContext->initialize();
+        if ($this->servletContext) {
+            $this->servletContext->initialize();
         }
 
         // load and initialize the handlers
-        if ($handlerManager = $this->getHandlerManager()) {
-            $handlerManager->initialize();
+        if ($this->handlerManager) {
+            $this->handlerManager->initialize();
         }
 
         // load and initialize the session manager
-        if ($sessionManager = $this->getSessionManager()) {
+        if ($this->sessionManager) {
 
             // prepare the default session save path
             $sessionSavePath = $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'sessions';
 
             // load the settings, set the default session save path
-            $sessionSettings = $sessionManager->getSessionSettings();
+            $sessionSettings = $this->sessionManager->getSessionSettings();
             $sessionSettings->setSessionSavePath($sessionSavePath);
 
             // if we've session parameters defined in our servlet context
-            if ($servletContext && $servletContext->hasSessionParameters()) {
+            if ($this->servletContext && $this->servletContext->hasSessionParameters()) {
 
                 // we want to merge the session settings from the servlet context into our session manager
-                $sessionSettings->mergeServletContext($servletContext);
+                $sessionSettings->mergeServletContext($this->servletContext);
             }
 
             // initialize the session manager
-            $sessionManager->initialize();
+            $this->sessionManager->initialize();
         }
 
-        // return the instance itself
-        return $this;
-    }
+        while (true) {
 
-    /**
-     * Bounds the application to the passed virtual host.
-     *
-     * @param \TechDivision\WebContainer\VirtualHost $virtualHost The virtual host to add
-     *
-     * @return void
-     */
-    public function addVirtualHost(VirtualHost $virtualHost)
-    {
-        $this->vhosts[] = $virtualHost;
+            $this->synchronized(function ($thread) {
+
+                if (!$thread->done) {
+                    $thread->wait();
+                }
+
+                $this->bodyStream = null;
+
+                $servletRequest = $this->servletRequest;
+                $servletResponse = $this->servletResponse;
+                $servletResponse->resetBodyStream();
+
+                // locate and service the servlet
+                $this->servletContext->locate($servletRequest)->service($servletRequest, $servletResponse);
+
+                $this->bodyStream = $servletResponse->getBodyContent();
+
+                $this->done = false;
+
+                $this->notify();
+
+            }, $this);
+        }
     }
 }
