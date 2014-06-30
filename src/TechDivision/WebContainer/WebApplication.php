@@ -125,25 +125,11 @@ class WebApplication extends AbstractApplication implements RequestContext
     protected $servletContext;
 
     /**
-     * The resource locator used to locate the servlet that matches the actual request.
-     *
-     * @var \TechDivision\WebContainer\ResourceLocator
-     */
-    protected $resourceLocator;
-
-    /**
      * The handler manager that handles the handlers of this application.
      *
      * @var \TechDivision\WebSocketServer\HandlerManager
      */
     protected $handlerManager;
-
-    /**
-     * The resource locator used to locate the servlet that matches the actual request.
-     *
-     * @var \TechDivision\WebSocketCServer\HandlerLocator
-     */
-    protected $handlerLocator;
 
     /**
      * Initializes the application context.
@@ -226,18 +212,6 @@ class WebApplication extends AbstractApplication implements RequestContext
     }
 
     /**
-     * Injects the resource locator that locates the requested servlet.
-     *
-     * @param \TechDivision\WebContainer\ResourceLocator $resourceLocator The resource locator
-     *
-     * @return void
-     */
-    public function injectResourceLocator(ResourceLocator $resourceLocator)
-    {
-        $this->resourceLocator = $resourceLocator;
-    }
-
-    /**
      * Injects the applications handler manager instance.
      *
      * @param \TechDivision\WebSocketServer\HandlerManager $handlerManager The handler manager instance
@@ -247,18 +221,6 @@ class WebApplication extends AbstractApplication implements RequestContext
     public function injectHandlerManager(HandlerManager $handlerManager)
     {
         $this->handlerManager = $handlerManager;
-    }
-
-    /**
-     * Injects the handler locator that locates the requested handler.
-     *
-     * @param \TechDivision\WebSocketServer\ResourceLocatorInterface $handlerLocator The handler locator
-     *
-     * @return void
-     */
-    public function injectHandlerLocator(ResourceLocatorInterface $handlerLocator)
-    {
-        $this->handlerLocator = $handlerLocator;
     }
 
     /**
@@ -370,16 +332,6 @@ class WebApplication extends AbstractApplication implements RequestContext
     }
 
     /**
-     * Return the resource locator instance.
-     *
-     * @return \TechDivision\WebContainer\ResourceLocator The resource locator instance
-     */
-    public function getResourceLocator()
-    {
-        return $this->resourceLocator;
-    }
-
-    /**
      * Return the handler manager instance.
      *
      * @return \TechDivision\WebSocketServer\HandlerManager The handler manager instance
@@ -387,16 +339,6 @@ class WebApplication extends AbstractApplication implements RequestContext
     public function getHandlerManager()
     {
         return $this->handlerManager;
-    }
-
-    /**
-     * Return the handler locator instance.
-     *
-     * @return \TechDivision\WebSocketServer\ResourceLocatorInterface The handler locator instance
-     */
-    public function getHandlerLocator()
-    {
-        return $this->handlerLocator;
     }
 
     /**
@@ -588,31 +530,5 @@ class WebApplication extends AbstractApplication implements RequestContext
     public function addVirtualHost(VirtualHost $virtualHost)
     {
         $this->vhosts[] = $virtualHost;
-    }
-
-    /**
-     * Locates and returns the servlet instance that handles
-     * the request passed as parameter.
-     *
-     * @param \TechDivision\Servlet\Http\HttpServletRequest $servletRequest The request instance
-     *
-     * @return \TechDivision\Servlet\Servlet The servlet instance to handle the request
-     */
-    public function locate(HttpServletRequest $servletRequest)
-    {
-        return $this->getResourceLocator()->locate($this->getServletContext(), $servletRequest);
-    }
-
-    /**
-     * Tries to locate the handler that handles the request and returns the instance if one can be found.
-     *
-     * @param \TechDivision\WebSocketProtocol\Request $request The request instance
-     *
-     * @return \Ratchet\MessageComponentInterface The handler that maps the request instance
-     * @see \TechDivision\WebSocketServer\Service\Locator\ResourceLocatorInterface::locate()
-     */
-    public function locateHandler(Request $request)
-    {
-        return $this->getHandlerLocator()->locate($this->getHandlerManager(), $request);
     }
 }

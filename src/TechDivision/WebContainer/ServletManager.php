@@ -25,6 +25,7 @@ namespace TechDivision\WebContainer;
 
 use TechDivision\Servlet\Servlet;
 use TechDivision\Servlet\ServletContext;
+use TechDivision\Servlet\Http\HttpServletRequest;
 use TechDivision\WebContainer\ServletConfiguration;
 use TechDivision\WebContainer\InvalidServletMappingException;
 
@@ -79,6 +80,13 @@ class ServletManager implements ServletContext
     protected $webappPath;
 
     /**
+     * The resource locator used to locate the servlet that matches the actual request.
+     *
+     * @var \TechDivision\WebContainer\ResourceLocator
+     */
+    protected $resourceLocator;
+
+    /**
      * Array with the context session parameters found in the web.xml configuration file.
      *
      * @var array
@@ -95,6 +103,18 @@ class ServletManager implements ServletContext
     public function injectWebappPath($webappPath)
     {
         $this->webappPath = $webappPath;
+    }
+
+    /**
+     * Injects the resource locator that locates the requested servlet.
+     *
+     * @param \TechDivision\WebContainer\ResourceLocator $resourceLocator The resource locator
+     *
+     * @return void
+     */
+    public function injectResourceLocator(ResourceLocator $resourceLocator)
+    {
+        $this->resourceLocator = $resourceLocator;
     }
 
     /**
@@ -306,6 +326,16 @@ class ServletManager implements ServletContext
     }
 
     /**
+     * Return the resource locator instance.
+     *
+     * @return \TechDivision\WebContainer\ResourceLocator The resource locator instance
+     */
+    public function getResourceLocator()
+    {
+        return $this->resourceLocator;
+    }
+
+    /**
      * Returns the host configuration.
      *
      * @return \TechDivision\ApplicationServer\Configuration The host configuration
@@ -387,5 +417,18 @@ class ServletManager implements ServletContext
     public function hasSessionParameters()
     {
         return sizeof($this->sessionParameters) > 0;
+    }
+
+    /**
+     * Tries to locate the resource related with the request.
+     *
+     * @param \TechDivision\Servlet\Http\HttpServletRequest $servletRequest The request instance to return the servlet for
+     *
+     * @return \TechDivision\Servlet\Servlet The requested servlet
+     * @see \TechDivision\WebContainer\ResourceLocator::locate()
+     */
+    public function locate(HttpServletRequest $servletRequest)
+    {
+        return $this->getResourceLocator()->locate($this, $servletRequest);
     }
 }
