@@ -561,6 +561,7 @@ class WebApplication extends \Thread implements ApplicationInterface, RequestCon
             // initialize the session manager
             $this->sessionManager->initialize();
         }
+        $this->done = false;
 
         while (true) {
 
