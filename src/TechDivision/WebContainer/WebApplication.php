@@ -585,23 +585,15 @@ class WebApplication extends \Thread implements ApplicationInterface, RequestCon
                 $servletRequest = $this->servletRequest;
                 $servletResponse = $this->servletResponse;
 
-                /*
-                 * Reset the internal body stream, because it has been destroyed when passing it
-                 * to the application thread.
-                 */
-                $servletResponse->resetBodyStream();
-
                 // locate and service the servlet
-                $this->servletContext->locate($servletRequest)->service($servletRequest, $servletResponse);
-
-                // load the content from the local servlet response
-                $this->bodyStream = $servletResponse->getBodyContent();
-
-                // we've finished working on this request
-                $this->handleRequest = false;
+                $servlet = $this->servletContext->locate($servletRequest);
+                $servlet->service($servletRequest, $servletResponse);
 
                 // notify ourself, because we're waiting in the synchronized() method outside
                 $this->notify();
+
+                // we've finished working on this request
+                $this->handleRequest = false;
 
             }, $this);
         }
