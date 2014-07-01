@@ -562,40 +562,9 @@ class WebApplication extends \Thread implements ApplicationInterface, RequestCon
             $this->sessionManager->initialize();
         }
 
-        /*
-         * Initialize the flag to lock/unlock application thread.
-         *
-         * If the application should handle the request, the flag
-         * has to be set to TRUE (from outside) and the application
-         * notified with the notify() method.
-         */
-        $this->handleRequest = false;
-
-        while (true) {  // run and wait to handle applications
-
-            // we need to be in a synchronized environment
-            $this->synchronized(function ($thread) {
-
-                // wait if should NOT handle a new request
-                if ($thread->handleRequest === false) {
-                    $thread->wait();
-                }
-
-                // reset request/response instance
-                $servletRequest = $this->servletRequest;
-                $servletResponse = $this->servletResponse;
-
-                // locate and service the servlet
-                $servlet = $this->servletContext->locate($servletRequest);
-                $servlet->service($servletRequest, $servletResponse);
-
-                // notify ourself, because we're waiting in the synchronized() method outside
-                $this->notify();
-
-                // we've finished working on this request
-                $this->handleRequest = false;
-
-            }, $this);
+        // we do nothing here
+        while (true) {
+            $this->wait();
         }
     }
 }
