@@ -561,29 +561,46 @@ class WebApplication extends \Thread implements ApplicationInterface, RequestCon
             // initialize the session manager
             $this->sessionManager->initialize();
         }
-        $this->done = false;
 
-        while (true) {
+        /*
+         * Initialize the flag to lock/unlock application thread.
+         *
+         * If the application should handle the request, the flag
+         * has to be set to TRUE (from outside) and the application
+         * notified with the notify() method.
+         */
+        $this->handleRequest = false;
 
+        while (true) {  // run and wait to handle applications
+
+            // we need to be in a synchronized environment
             $this->synchronized(function ($thread) {
 
-                if (!$thread->done) {
+                // wait if should NOT handle a new request
+                if ($thread->handleRequest === false) {
                     $thread->wait();
                 }
 
-                $this->bodyStream = null;
-
+                // reset request/response instance
                 $servletRequest = $this->servletRequest;
                 $servletResponse = $this->servletResponse;
+
+                /*
+                 * Reset the internal body stream, because it has been destroyed when passing it
+                 * to the application thread.
+                 */
                 $servletResponse->resetBodyStream();
 
                 // locate and service the servlet
                 $this->servletContext->locate($servletRequest)->service($servletRequest, $servletResponse);
 
+                // load the content from the local servlet response
                 $this->bodyStream = $servletResponse->getBodyContent();
 
-                $this->done = false;
+                // we've finished working on this request
+                $this->handleRequest = false;
 
+                // notify ourself, because we're waiting in the synchronized() method outside
                 $this->notify();
 
             }, $this);
