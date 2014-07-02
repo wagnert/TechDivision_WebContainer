@@ -79,6 +79,9 @@ class WebContainerDeployment extends AbstractDeployment
                 $application->injectServletContext($this->getServletContext($folder));
                 $application->injectHandlerManager($this->getHandlerManager($folder));
 
+                // adds the default class loader
+                $application->addClassLoader($this->getInitialContext()->getClassLoader());
+
                 // add the application to the available applications
                 $this->addApplication($application);
             }

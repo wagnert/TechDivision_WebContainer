@@ -21,7 +21,6 @@
 
 namespace TechDivision\WebContainer;
 
-use TechDivision\Storage\StackableStorage;
 use TechDivision\Servlet\Servlet;
 use TechDivision\Servlet\ServletContext;
 use TechDivision\Servlet\Http\HttpServletRequest;
@@ -86,13 +85,6 @@ class WebApplication extends \Thread implements ApplicationInterface, RequestCon
     protected $name;
 
     /**
-     * Array with available VHost configurations.
-     *
-     * @var array
-     */
-    protected $vhosts;
-
-    /**
      * The host configuration.
      *
      * @var \TechDivision\ApplicationServer\Configuration
@@ -135,11 +127,26 @@ class WebApplication extends \Thread implements ApplicationInterface, RequestCon
     protected $handlerManager;
 
     /**
+     * Storage for the available VHost configurations.
+     *
+     * @var \ArrayAccess
+     */
+    protected $vhosts;
+
+    /**
+     * Storage for the available class loaders.
+     *
+     * @var \ArrayAccess
+     */
+    protected $classLoaders;
+
+    /**
      * Initializes the application context.
      */
     public function __construct()
     {
-        $this->vhosts = new StackableStorage();
+        $this->vhosts = new \Stackable();
+        $this->classLoaders = new \Stackable();
     }
 
     /**
@@ -423,11 +430,21 @@ class WebApplication extends \Thread implements ApplicationInterface, RequestCon
     /**
      * Return's the applications available VHost configurations.
      *
-     * @return array The available VHost configurations
+     * @return \ArrayAccess The available VHost configurations
      */
     public function getVhosts()
     {
         return $this->vhosts;
+    }
+
+    /**
+     * Return the class loaders.
+     *
+     * @return \ArrayAccess The class loader instances
+     */
+    public function getClassLoaders()
+    {
+        return $this->classLoaders;
     }
 
     /**
@@ -490,6 +507,18 @@ class WebApplication extends \Thread implements ApplicationInterface, RequestCon
     }
 
     /**
+     * Injects an additional class loader.
+     *
+     * @param object $classLoader A class loader to put on the class loader stack
+     *
+     * @return void
+     */
+    protected function addClassLoader($classLoader)
+    {
+        $this->classLoaders[] = $classLoader;
+    }
+
+    /**
      * Has been automatically invoked by the container after the application
      * instance has been created.
      *
@@ -504,7 +533,13 @@ class WebApplication extends \Thread implements ApplicationInterface, RequestCon
         return $this;
     }
 
-    public function run()
+    /**
+     * Registers all class loaders injected to the applications in the opposite
+     * order as they have been injected.
+     *
+     * @return void
+     */
+    public function registerClassLoaders()
     {
 
         // initialize the class loader with the additional folders
@@ -512,11 +547,8 @@ class WebApplication extends \Thread implements ApplicationInterface, RequestCon
         set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'classes');
         set_include_path(get_include_path() . PATH_SEPARATOR . $this->getWebappPath() . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . 'lib');
 
-        // register the class loader again, because in a Thread the context has been lost maybe
-        $this->getInitialContext()->getClassLoader()->register(true);
-
         /**
-         * @TODO Refactor PBC!
+         * @TODO Refactor to allow PBC class loader also, maybe with a class loader factory!
          *
          * $config Config::getInstance();
          * $config->setXXX();
@@ -530,6 +562,23 @@ class WebApplication extends \Thread implements ApplicationInterface, RequestCon
          *     $classLoader->register();
          * }
          */
+
+        foreach ($this->getClassLoaders() as $classLoader) {
+            $classLoader->register(true, true);
+        }
+    }
+
+    /**
+     * This is the threads main() method that initializes the application with the autoloader and
+     * instanciates all the necessary manager instances.
+     *
+     * @return void
+     */
+    public function run()
+    {
+
+        // register the class loaders
+        $this->registerClassLoaders();
 
         // load and initialize the servlets
         if ($this->servletContext) {
