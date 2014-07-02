@@ -21,6 +21,7 @@
 
 namespace TechDivision\WebContainer;
 
+use TechDivision\Storage\GenericStackable;
 use TechDivision\Servlet\Servlet;
 use TechDivision\Servlet\ServletContext;
 use TechDivision\Servlet\Http\HttpServletRequest;
@@ -129,14 +130,14 @@ class WebApplication extends \Thread implements ApplicationInterface, RequestCon
     /**
      * Storage for the available VHost configurations.
      *
-     * @var \ArrayAccess
+     * @var \TechDivision\Storage\GenericStackable
      */
     protected $vhosts;
 
     /**
      * Storage for the available class loaders.
      *
-     * @var \ArrayAccess
+     * @var \TechDivision\Storage\GenericStackable
      */
     protected $classLoaders;
 
@@ -145,8 +146,8 @@ class WebApplication extends \Thread implements ApplicationInterface, RequestCon
      */
     public function __construct()
     {
-        $this->vhosts = new \Stackable();
-        $this->classLoaders = new \Stackable();
+        $this->vhosts = new GenericStackable();
+        $this->classLoaders = new GenericStackable();
     }
 
     /**
