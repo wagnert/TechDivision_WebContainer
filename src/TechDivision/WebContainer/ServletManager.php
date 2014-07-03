@@ -45,16 +45,24 @@ use TechDivision\WebContainer\InvalidServletMappingException;
 class ServletManager extends \Stackable implements ServletContext
 {
 
-
+    /**
+     * Initializes the queue manager.
+     *
+     * @return void
+     */
     public function __construct()
     {
+
+        // initialize the member variables
+        $this->webappPath = '';
+        $this->resourceLocator = null;
+
+        // initialize the stackabls
         $this->servlets = new StackableStorage();
         $this->servletMappings = new StackableStorage();
         $this->initParameters = new StackableStorage();
         $this->securedUrlConfigs = new StackableStorage();
         $this->sessionParameters = new StackableStorage();
-        $this->webappPath;
-        $this->resourceLocator;
     }
 
     /**
