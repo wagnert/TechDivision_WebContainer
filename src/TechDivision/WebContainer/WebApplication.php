@@ -26,6 +26,7 @@ use TechDivision\Servlet\Servlet;
 use TechDivision\Servlet\ServletContext;
 use TechDivision\Servlet\Http\HttpServletRequest;
 use TechDivision\ServletEngine\Http\RequestContext;
+use TechDivision\ServletEngine\VirtualHost;
 use TechDivision\PBC\AutoLoader;
 use TechDivision\PBC\Config;
 use TechDivision\ApplicationServer\Interfaces\ApplicationInterface;
@@ -458,8 +459,6 @@ class WebApplication extends \Thread implements ApplicationInterface, RequestCon
     public function isVHostOf($serverName)
     {
 
-        return false;
-
         // check if the application is a virtual host for the passed server name
         foreach ($this->getVHosts() as $virtualHost) {
 
@@ -498,7 +497,7 @@ class WebApplication extends \Thread implements ApplicationInterface, RequestCon
     /**
      * Bounds the application to the passed virtual host.
      *
-     * @param \TechDivision\WebContainer\VirtualHost $virtualHost The virtual host to add
+     * @param \TechDivision\ServletEngine\VirtualHost $virtualHost The virtual host to add
      *
      * @return void
      */
