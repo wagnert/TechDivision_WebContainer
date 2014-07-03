@@ -45,7 +45,13 @@ use TechDivision\WebContainer\InvalidServletMappingException;
 class ServletManager extends \Stackable implements ServletContext
 {
 
-
+    /**
+     * Injects the absolute path to the web application.
+     *
+     * @param string $webappPath The path to this web application
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->servlets = new StackableStorage();
